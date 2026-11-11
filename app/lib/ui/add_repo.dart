@@ -1,8 +1,9 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:file_selector/file_selector.dart';
 import 'package:flutter/material.dart';
-import 'package:permission_handler/permission_handler.dart';
+import 'package:flutter/services.dart';
 
 import '../state/app_controller.dart';
 import 'widgets/feedback.dart';
@@ -27,8 +28,13 @@ Future<String?> pickFolder(
   return getDirectoryPath(confirmButtonText: 'Choose');
 }
 
+const _storage = MethodChannel('clotho/storage');
+
+Future<bool> _hasAllFilesAccess() async =>
+    await _storage.invokeMethod<bool>('hasAllFilesAccess') ?? false;
+
 Future<bool> _ensureAndroidStorage(BuildContext context) async {
-  if (await Permission.manageExternalStorage.isGranted) return true;
+  if (await _hasAllFilesAccess()) return true;
   if (!context.mounted) return false;
   final ok = await confirm(
     context,
@@ -39,8 +45,18 @@ Future<bool> _ensureAndroidStorage(BuildContext context) async {
     action: 'Open settings',
   );
   if (!ok) return false;
-  final status = await Permission.manageExternalStorage.request();
-  return status.isGranted;
+  await _storage.invokeMethod<void>('requestAllFilesAccess');
+  // The settings screen returns asynchronously; wait until the app is in
+  // front again, then check.
+  final ready = Completer<void>();
+  final listener = AppLifecycleListener(
+    onResume: () {
+      if (!ready.isCompleted) ready.complete();
+    },
+  );
+  await ready.future.timeout(const Duration(minutes: 5), onTimeout: () {});
+  listener.dispose();
+  return _hasAllFilesAccess();
 }
 
 Future<void> addRepository(BuildContext context, AppController app) async {
