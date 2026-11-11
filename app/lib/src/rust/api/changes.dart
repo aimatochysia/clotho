@@ -5,6 +5,7 @@
 
 import '../error.dart';
 import '../frb_generated.dart';
+import 'identity.dart';
 
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
@@ -59,11 +60,13 @@ Future<CommitResult> commit({
   required String message,
   required bool stageAllFirst,
   required bool amend,
+  Identity? identity,
 }) => RustLib.instance.api.crateApiChangesCommit(
   path: path,
   message: message,
   stageAllFirst: stageAllFirst,
   amend: amend,
+  identity: identity,
 );
 
 class CommitResult {

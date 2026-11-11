@@ -11,6 +11,7 @@ import 'github/github_tab.dart';
 import 'dashboard_page.dart' show pullMessage;
 import 'history_tab.dart';
 import 'settings_page.dart';
+import 'identity.dart';
 import 'widgets/feedback.dart';
 
 class RepoPage extends StatefulWidget {
@@ -178,8 +179,9 @@ class _PullButton extends StatelessWidget {
                   ? Icons.radio_button_checked
                   : Icons.radio_button_off,
             ),
-            onPressed: () => guarded(
+            onPressed: () => withIdentity(
               context,
+              repo.app,
               () => repo.pull(strategy: p),
               success: pullMessage,
             ),
@@ -195,7 +197,12 @@ class _PullButton extends StatelessWidget {
               'Pull (${pullStrategyLabel(strategy)}). Long-press or right-click for options.',
           onPressed: repo.busy
               ? null
-              : () => guarded(context, () => repo.pull(), success: pullMessage),
+              : () => withIdentity(
+                  context,
+                  repo.app,
+                  () => repo.pull(),
+                  success: pullMessage,
+                ),
           icon: Badge(
             isLabelVisible: s != null && s.behind > 0,
             label: Text('${s?.behind ?? 0}'),

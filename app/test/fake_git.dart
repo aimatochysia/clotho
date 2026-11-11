@@ -1,12 +1,16 @@
 import 'dart:async';
+import 'dart:typed_data';
 
 import 'package:clotho/core/git_service.dart';
+import 'package:clotho/src/rust/error.dart';
 
 const defaultSettings = AppSettings(
   pullStrategy: PullStrategy.fastForwardOnly,
   pushAfterCommit: false,
   scanDepth: 3,
   checkUpdates: true,
+  identities: [],
+  defaultIdentity: 0,
 );
 
 RepoStatus statusWith({
@@ -51,6 +55,43 @@ class FakeGitService implements GitService {
   Registry registry;
   final Map<String, RepoStatus> statuses = {};
   final Map<String, Object> fetchErrors = {};
+
+  /// What `git config user.name/user.email` would give.
+  Identity? configIdentity = const Identity(
+    name: 'Config User',
+    email: 'config@example.com',
+  );
+
+  /// Files whose diff is reported as binary.
+  final Set<String> binaryFiles = {};
+
+  /// Bytes returned as both sides of a binary change.
+  Uint8List? oldBytes;
+  Uint8List? newBytes;
+
+  @override
+  Future<Identity?> gitIdentity(String? path) async => configIdentity;
+
+  FileSide _side(Uint8List? b) =>
+      FileSide(exists: b != null, size: BigInt.from(b?.length ?? 0), data: b);
+
+  @override
+  Future<FileVersions> workingFileVersions(
+    String path,
+    String file, {
+    required bool staged,
+  }) async => FileVersions(before: _side(oldBytes), after: _side(newBytes));
+
+  @override
+  Future<FileVersions> commitFileVersions(
+    String path,
+    String oid,
+    String file, {
+    String? oldPath,
+  }) async => FileVersions(before: _side(oldBytes), after: _side(newBytes));
+
+  @override
+  Future<Uint8List> renderAseprite(Uint8List data) async => data;
 
   /// Commits the remote gains on the next fetch of each repository.
   final Map<String, int> incoming = {};
@@ -152,7 +193,7 @@ class FakeGitService implements GitService {
     required bool staged,
   }) async => FileDiff(
     path: file,
-    isBinary: false,
+    isBinary: binaryFiles.contains(file),
     truncated: false,
     additions: 1,
     deletions: 1,
@@ -217,8 +258,14 @@ class FakeGitService implements GitService {
     String message, {
     required bool stageAll,
     bool amend = false,
+    Identity? identity,
   }) async {
-    calls.add('commit "$message" stageAll=$stageAll');
+    if (identity == null && configIdentity == null) {
+      throw const CoreError.missingIdentity();
+    }
+    calls.add(
+      'commit "$message" stageAll=$stageAll as ${(identity ?? configIdentity)!.email}',
+    );
     final s = await status(path);
     statuses[path] = statusWith(path: path, ahead: s.ahead + 1);
     return CommitResult(
@@ -293,7 +340,11 @@ class FakeGitService implements GitService {
   }
 
   @override
-  Future<PullResult> pull(String path, PullStrategy strategy) async {
+  Future<PullResult> pull(
+    String path,
+    PullStrategy strategy, {
+    Identity? identity,
+  }) async {
     calls.add('pull ${strategy.name}');
     return const PullResult(outcome: PullOutcome.upToDate, newCommits: 0);
   }

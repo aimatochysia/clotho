@@ -8,6 +8,7 @@ use git2::{
 use serde::{Deserialize, Serialize};
 
 use crate::api::branches::switch_to;
+use crate::api::identity::{signature, Identity};
 use crate::error::{CoreError, CoreResult};
 use crate::util::{self, open_repo};
 
@@ -156,7 +157,12 @@ fn upstream_of(repo: &Repository, branch: &str) -> CoreResult<(String, String)> 
 }
 
 /// Fetches the upstream of the current branch and integrates it using `strategy`.
-pub fn pull(path: String, strategy: PullStrategy, auth: AuthOptions) -> CoreResult<PullResult> {
+pub fn pull(
+    path: String,
+    strategy: PullStrategy,
+    auth: AuthOptions,
+    identity: Option<Identity>,
+) -> CoreResult<PullResult> {
     let repo = open_repo(&path)?;
     util::workdir(&repo)?;
     let conflicts = util::conflicted_paths(&repo)?;
@@ -196,14 +202,14 @@ pub fn pull(path: String, strategy: PullStrategy, auth: AuthOptions) -> CoreResu
     match strategy {
         PullStrategy::FastForwardOnly => Err(CoreError::NotFastForward),
         PullStrategy::Merge => {
-            merge_upstream(&repo, &branch, &up_ref, &upstream)?;
+            merge_upstream(&repo, &branch, &up_ref, &upstream, identity.as_ref())?;
             Ok(PullResult {
                 outcome: PullOutcome::Merged,
                 new_commits,
             })
         }
         PullStrategy::Rebase => {
-            rebase_onto(&repo, &upstream)?;
+            rebase_onto(&repo, &upstream, identity.as_ref())?;
             Ok(PullResult {
                 outcome: PullOutcome::Rebased,
                 new_commits,
@@ -234,6 +240,7 @@ fn merge_upstream(
     branch: &str,
     up_ref: &str,
     upstream: &AnnotatedCommit,
+    identity: Option<&Identity>,
 ) -> CoreResult<()> {
     let mut cb = git2::build::CheckoutBuilder::new();
     cb.safe().allow_conflicts(true).conflict_style_merge(true);
@@ -243,7 +250,7 @@ fn merge_upstream(
         // Leave the merge in progress so the user can resolve and commit.
         return Err(CoreError::Conflicts { files: conflicts });
     }
-    let sig = repo.signature().map_err(|_| CoreError::MissingIdentity)?;
+    let sig = signature(repo, identity)?;
     let mut index = repo.index()?;
     let tree = repo.find_tree(index.write_tree()?)?;
     let head = repo.head()?.peel_to_commit()?;
@@ -255,8 +262,12 @@ fn merge_upstream(
     Ok(())
 }
 
-fn rebase_onto(repo: &Repository, upstream: &AnnotatedCommit) -> CoreResult<()> {
-    let sig = repo.signature().map_err(|_| CoreError::MissingIdentity)?;
+fn rebase_onto(
+    repo: &Repository,
+    upstream: &AnnotatedCommit,
+    identity: Option<&Identity>,
+) -> CoreResult<()> {
+    let sig = signature(repo, identity)?;
     let mut rebase = repo.rebase(None, Some(upstream), None, None)?;
     while let Some(op) = rebase.next() {
         let op = op?;
@@ -392,7 +403,13 @@ mod tests {
     #[test]
     fn pull_up_to_date() {
         let pair = RemotePair::new();
-        let r = pull(pair.local.path(), PullStrategy::FastForwardOnly, no_auth()).unwrap();
+        let r = pull(
+            pair.local.path(),
+            PullStrategy::FastForwardOnly,
+            no_auth(),
+            None,
+        )
+        .unwrap();
         assert_eq!(r.outcome, PullOutcome::UpToDate);
     }
 
@@ -402,7 +419,13 @@ mod tests {
         let other = pair.other_clone();
         other.commit_file("x.txt", "x", "remote work");
         push_head(&other);
-        let r = pull(pair.local.path(), PullStrategy::FastForwardOnly, no_auth()).unwrap();
+        let r = pull(
+            pair.local.path(),
+            PullStrategy::FastForwardOnly,
+            no_auth(),
+            None,
+        )
+        .unwrap();
         assert_eq!(r.outcome, PullOutcome::FastForwarded);
         assert_eq!(r.new_commits, 1);
         assert!(pair.local.dir.path().join("x.txt").exists());
@@ -422,7 +445,13 @@ mod tests {
     fn ff_only_refuses_diverged() {
         let pair = RemotePair::new();
         diverge(&pair);
-        let err = pull(pair.local.path(), PullStrategy::FastForwardOnly, no_auth()).unwrap_err();
+        let err = pull(
+            pair.local.path(),
+            PullStrategy::FastForwardOnly,
+            no_auth(),
+            None,
+        )
+        .unwrap_err();
         assert!(matches!(err, CoreError::NotFastForward));
     }
 
@@ -430,7 +459,7 @@ mod tests {
     fn merge_creates_merge_commit() {
         let pair = RemotePair::new();
         diverge(&pair);
-        let r = pull(pair.local.path(), PullStrategy::Merge, no_auth()).unwrap();
+        let r = pull(pair.local.path(), PullStrategy::Merge, no_auth(), None).unwrap();
         assert_eq!(r.outcome, PullOutcome::Merged);
         let head = pair.local.repo.head().unwrap().peel_to_commit().unwrap();
         assert_eq!(head.parent_count(), 2);
@@ -442,7 +471,7 @@ mod tests {
     fn rebase_replays_local_commits() {
         let pair = RemotePair::new();
         diverge(&pair);
-        let r = pull(pair.local.path(), PullStrategy::Rebase, no_auth()).unwrap();
+        let r = pull(pair.local.path(), PullStrategy::Rebase, no_auth(), None).unwrap();
         assert_eq!(r.outcome, PullOutcome::Rebased);
         let head = pair.local.repo.head().unwrap().peel_to_commit().unwrap();
         assert_eq!(head.summary(), Some("mine"));
@@ -459,7 +488,7 @@ mod tests {
         other.commit_file("README.md", "theirs\n", "theirs");
         push_head(&other);
         pair.local.commit_file("README.md", "mine\n", "mine");
-        let err = pull(pair.local.path(), PullStrategy::Merge, no_auth()).unwrap_err();
+        let err = pull(pair.local.path(), PullStrategy::Merge, no_auth(), None).unwrap_err();
         match err {
             CoreError::Conflicts { files } => assert_eq!(files, vec!["README.md"]),
             other => panic!("unexpected {other:?}"),
@@ -474,7 +503,7 @@ mod tests {
         other.commit_file("README.md", "theirs\n", "theirs");
         push_head(&other);
         let mine = pair.local.commit_file("README.md", "mine\n", "mine");
-        let err = pull(pair.local.path(), PullStrategy::Rebase, no_auth()).unwrap_err();
+        let err = pull(pair.local.path(), PullStrategy::Rebase, no_auth(), None).unwrap_err();
         assert!(matches!(err, CoreError::Conflicts { .. }));
         assert_eq!(pair.local.repo.state(), git2::RepositoryState::Clean);
         assert_eq!(pair.local.repo.head().unwrap().target(), Some(mine));
@@ -516,7 +545,7 @@ mod tests {
     fn pull_without_upstream_is_explained() {
         let t = TestRepo::new("main");
         t.commit_file("a.txt", "a", "init");
-        let err = pull(t.path(), PullStrategy::Merge, no_auth()).unwrap_err();
+        let err = pull(t.path(), PullStrategy::Merge, no_auth(), None).unwrap_err();
         assert!(matches!(err, CoreError::NoUpstream { .. }));
     }
 }

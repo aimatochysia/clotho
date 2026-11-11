@@ -1,6 +1,10 @@
+import 'dart:typed_data';
+
 import '../src/rust/api/branches.dart' as rb;
 import '../src/rust/api/changes.dart' as rc;
 import '../src/rust/api/history.dart' as rh;
+import '../src/rust/api/identity.dart' as ri;
+import '../src/rust/api/preview.dart' as rv;
 import '../src/rust/api/registry.dart' as rr;
 import '../src/rust/api/remote.dart' as rm;
 import '../src/rust/api/repo.dart' as rp;
@@ -9,6 +13,8 @@ import '../src/rust/api/watch.dart' as rw;
 import '../src/rust/api/branches.dart' show BranchInfo;
 import '../src/rust/api/changes.dart' show CommitResult, FileDiff;
 import '../src/rust/api/history.dart' show CommitInfo;
+import '../src/rust/api/identity.dart' show Identity;
+import '../src/rust/api/preview.dart' show FileVersions;
 import '../src/rust/api/registry.dart'
     show AddReport, AppSettings, FetchSchedule, FetchUnit, Registry, RepoEntry;
 import '../src/rust/api/remote.dart'
@@ -19,6 +25,8 @@ export '../src/rust/api/branches.dart' show BranchInfo;
 export '../src/rust/api/changes.dart'
     show CommitResult, DiffHunk, DiffLine, FileDiff, LineKind;
 export '../src/rust/api/history.dart' show CommitInfo;
+export '../src/rust/api/identity.dart' show Identity;
+export '../src/rust/api/preview.dart' show FileSide, FileVersions;
 export '../src/rust/api/registry.dart'
     show
         AddReport,
@@ -46,12 +54,16 @@ extension AppSettingsCopy on AppSettings {
     int? scanDepth,
     bool? checkUpdates,
     String? cloneDir,
+    List<Identity>? identities,
+    int? defaultIdentity,
   }) => AppSettings(
     pullStrategy: pullStrategy ?? this.pullStrategy,
     pushAfterCommit: pushAfterCommit ?? this.pushAfterCommit,
     scanDepth: scanDepth ?? this.scanDepth,
     checkUpdates: checkUpdates ?? this.checkUpdates,
     cloneDir: cloneDir ?? this.cloneDir,
+    identities: identities ?? this.identities,
+    defaultIdentity: defaultIdentity ?? this.defaultIdentity,
   );
 }
 
@@ -79,15 +91,29 @@ extension FetchScheduleTime on FetchSchedule {
   }
 }
 
+const _keep = Object();
+
 extension RepoEntryCopy on RepoEntry {
-  RepoEntry copyWith({String? name, FetchSchedule? fetchSchedule}) => RepoEntry(
+  /// Pass `identityEmail: null` to go back to the default identity.
+  RepoEntry copyWith({
+    String? name,
+    FetchSchedule? fetchSchedule,
+    Object? identityEmail = _keep,
+  }) => RepoEntry(
     path: path,
     name: name ?? this.name,
     pullStrategy: pullStrategy,
     pushAfterCommit: pushAfterCommit,
     fetchSchedule: fetchSchedule ?? this.fetchSchedule,
     lastAutoFetch: lastAutoFetch,
+    identityEmail: identical(identityEmail, _keep)
+        ? this.identityEmail
+        : identityEmail as String?,
   );
+}
+
+extension IdentityText on Identity {
+  String get label => '$name <$email>';
 }
 
 /// Everything the UI needs from the Rust core. Widgets and controllers depend
@@ -116,7 +142,27 @@ abstract interface class GitService {
     String message, {
     required bool stageAll,
     bool amend = false,
+    Identity? identity,
   });
+
+  /// Who Git itself would commit as in [path] (or globally when null).
+  Future<Identity?> gitIdentity(String? path);
+
+  /// Both sides of a change, for previews of binary files.
+  Future<FileVersions> workingFileVersions(
+    String path,
+    String file, {
+    required bool staged,
+  });
+  Future<FileVersions> commitFileVersions(
+    String path,
+    String oid,
+    String file, {
+    String? oldPath,
+  });
+
+  /// First frame of an Aseprite sprite as PNG bytes.
+  Future<Uint8List> renderAseprite(Uint8List data);
 
   Future<List<BranchInfo>> branches(String path);
   Future<void> checkout(String path, String name);
@@ -137,7 +183,11 @@ abstract interface class GitService {
   });
 
   Future<FetchResult> fetch(String path);
-  Future<PullResult> pull(String path, PullStrategy strategy);
+  Future<PullResult> pull(
+    String path,
+    PullStrategy strategy, {
+    Identity? identity,
+  });
   Future<PushResult> push(String path);
 
   /// Emits whenever files in the repository change. Cancel to stop.
@@ -212,12 +262,37 @@ class RustGitService implements GitService {
     String message, {
     required bool stageAll,
     bool amend = false,
+    Identity? identity,
   }) => rc.commit(
     path: path,
     message: message,
     stageAllFirst: stageAll,
     amend: amend,
+    identity: identity,
   );
+
+  @override
+  Future<Identity?> gitIdentity(String? path) => ri.gitIdentity(path: path);
+
+  @override
+  Future<FileVersions> workingFileVersions(
+    String path,
+    String file, {
+    required bool staged,
+  }) => rv.workingFileVersions(path: path, file: file, staged: staged);
+
+  @override
+  Future<FileVersions> commitFileVersions(
+    String path,
+    String oid,
+    String file, {
+    String? oldPath,
+  }) =>
+      rv.commitFileVersions(path: path, oid: oid, file: file, oldPath: oldPath);
+
+  @override
+  Future<Uint8List> renderAseprite(Uint8List data) =>
+      rv.renderAseprite(data: data);
 
   @override
   Future<List<BranchInfo>> branches(String path) => rb.listBranches(path: path);
@@ -260,8 +335,16 @@ class RustGitService implements GitService {
   Future<FetchResult> fetch(String path) async =>
       rm.fetchAll(path: path, auth: await _auth());
   @override
-  Future<PullResult> pull(String path, PullStrategy strategy) async =>
-      rm.pull(path: path, strategy: strategy, auth: await _auth());
+  Future<PullResult> pull(
+    String path,
+    PullStrategy strategy, {
+    Identity? identity,
+  }) async => rm.pull(
+    path: path,
+    strategy: strategy,
+    auth: await _auth(),
+    identity: identity,
+  );
   @override
   Future<PushResult> push(String path) async =>
       rm.push(path: path, auth: await _auth());

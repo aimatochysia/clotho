@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 
 import '../core/git_service.dart';
 import '../state/app_controller.dart';
+import 'identity.dart';
 import 'update_ui.dart';
 import 'widgets/feedback.dart';
 
@@ -76,6 +77,8 @@ class SettingsPage extends StatelessWidget {
                 value: s.pushAfterCommit,
                 onChanged: (v) => save(s.copyWith(pushAfterCommit: v)),
               ),
+              const _Header('Commit identity'),
+              IdentitySettings(app: app),
               const _Header('Repositories'),
               ListTile(
                 leading: const Icon(Icons.travel_explore),
@@ -209,6 +212,12 @@ class _RepoSettingsDialogState extends State<_RepoSettingsDialog> {
   late final _name = TextEditingController(text: widget.entry.name);
   late PullStrategy? _pull = widget.entry.pullStrategy;
   late bool? _push = widget.entry.pushAfterCommit;
+  late String? _identity =
+      widget.defaults.identities.any(
+        (i) => i.email == widget.entry.identityEmail,
+      )
+      ? widget.entry.identityEmail
+      : null;
   late bool _autoFetch = widget.entry.fetchSchedule.enabled;
   late FetchUnit _unit = widget.entry.fetchSchedule.unit;
   late final _every = TextEditingController(
@@ -277,6 +286,30 @@ class _RepoSettingsDialogState extends State<_RepoSettingsDialog> {
               ],
               onChanged: (v) => setState(() => _push = v),
             ),
+            if (d.identities.isNotEmpty) ...[
+              const SizedBox(height: 16),
+              DropdownButtonFormField<String?>(
+                key: const Key('repo-identity'),
+                isExpanded: true,
+                initialValue: _identity,
+                decoration: const InputDecoration(labelText: 'Commit as'),
+                items: [
+                  DropdownMenuItem(
+                    value: null,
+                    child: Text(
+                      'Default (${d.identities[d.defaultIdentity.clamp(0, d.identities.length - 1)].label})',
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  for (final id in d.identities)
+                    DropdownMenuItem(
+                      value: id.email,
+                      child: Text(id.label, overflow: TextOverflow.ellipsis),
+                    ),
+                ],
+                onChanged: (v) => setState(() => _identity = v),
+              ),
+            ],
             const SizedBox(height: 8),
             SwitchListTile(
               key: const Key('auto-fetch'),
@@ -365,6 +398,7 @@ class _RepoSettingsDialogState extends State<_RepoSettingsDialog> {
                 unit: _unit,
               ),
               lastAutoFetch: widget.entry.lastAutoFetch,
+              identityEmail: _identity,
             ),
           ),
           child: const Text('Save'),

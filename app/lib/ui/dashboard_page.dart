@@ -8,6 +8,7 @@ import 'github/repos_page.dart';
 import 'github/sign_in.dart';
 import 'repo_page.dart';
 import 'settings_page.dart';
+import 'identity.dart';
 import 'update_ui.dart';
 import 'widgets/feedback.dart';
 
@@ -352,8 +353,9 @@ class _RepoMenu extends StatelessWidget {
               success: (_) => 'Fetched ${repo.entry.name}',
             );
           case 'pull':
-            await guarded(
+            await withIdentity(
               context,
+              app,
               () => app.pull(path),
               success: (r) => pullMessage(r),
             );

@@ -11,6 +11,8 @@ import 'api/branches.dart';
 import 'api/changes.dart';
 import 'api/github.dart';
 import 'api/history.dart';
+import 'api/identity.dart';
+import 'api/preview.dart';
 import 'api/registry.dart';
 import 'api/remote.dart';
 import 'api/repo.dart';
@@ -83,6 +85,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   PlatformInt64 dco_decode_box_autoadd_i_64(dynamic raw);
 
   @protected
+  Identity dco_decode_box_autoadd_identity(dynamic raw);
+
+  @protected
   PlatformInfo dco_decode_box_autoadd_platform_info(dynamic raw);
 
   @protected
@@ -149,6 +154,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   FileDiff dco_decode_file_diff(dynamic raw);
 
   @protected
+  FileSide dco_decode_file_side(dynamic raw);
+
+  @protected
+  FileVersions dco_decode_file_versions(dynamic raw);
+
+  @protected
   GitHubIssue dco_decode_git_hub_issue(dynamic raw);
 
   @protected
@@ -168,6 +179,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   PlatformInt64 dco_decode_i_64(dynamic raw);
+
+  @protected
+  Identity dco_decode_identity(dynamic raw);
 
   @protected
   LineKind dco_decode_line_kind(dynamic raw);
@@ -203,6 +217,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   List<GitHubRepo> dco_decode_list_git_hub_repo(dynamic raw);
 
   @protected
+  List<Identity> dco_decode_list_identity(dynamic raw);
+
+  @protected
+  List<int> dco_decode_list_prim_u_8_loose(dynamic raw);
+
+  @protected
   Uint8List dco_decode_list_prim_u_8_strict(dynamic raw);
 
   @protected
@@ -230,6 +250,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   PlatformInt64? dco_decode_opt_box_autoadd_i_64(dynamic raw);
 
   @protected
+  Identity? dco_decode_opt_box_autoadd_identity(dynamic raw);
+
+  @protected
   PullStrategy? dco_decode_opt_box_autoadd_pull_strategy(dynamic raw);
 
   @protected
@@ -240,6 +263,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   UpdateInfo? dco_decode_opt_box_autoadd_update_info(dynamic raw);
+
+  @protected
+  Uint8List? dco_decode_opt_list_prim_u_8_strict(dynamic raw);
 
   @protected
   PackageKind dco_decode_package_kind(dynamic raw);
@@ -355,6 +381,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   PlatformInt64 sse_decode_box_autoadd_i_64(SseDeserializer deserializer);
 
   @protected
+  Identity sse_decode_box_autoadd_identity(SseDeserializer deserializer);
+
+  @protected
   PlatformInfo sse_decode_box_autoadd_platform_info(
     SseDeserializer deserializer,
   );
@@ -427,6 +456,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   FileDiff sse_decode_file_diff(SseDeserializer deserializer);
 
   @protected
+  FileSide sse_decode_file_side(SseDeserializer deserializer);
+
+  @protected
+  FileVersions sse_decode_file_versions(SseDeserializer deserializer);
+
+  @protected
   GitHubIssue sse_decode_git_hub_issue(SseDeserializer deserializer);
 
   @protected
@@ -446,6 +481,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   PlatformInt64 sse_decode_i_64(SseDeserializer deserializer);
+
+  @protected
+  Identity sse_decode_identity(SseDeserializer deserializer);
 
   @protected
   LineKind sse_decode_line_kind(SseDeserializer deserializer);
@@ -481,6 +519,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   List<GitHubRepo> sse_decode_list_git_hub_repo(SseDeserializer deserializer);
 
   @protected
+  List<Identity> sse_decode_list_identity(SseDeserializer deserializer);
+
+  @protected
+  List<int> sse_decode_list_prim_u_8_loose(SseDeserializer deserializer);
+
+  @protected
   Uint8List sse_decode_list_prim_u_8_strict(SseDeserializer deserializer);
 
   @protected
@@ -512,6 +556,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   PlatformInt64? sse_decode_opt_box_autoadd_i_64(SseDeserializer deserializer);
 
   @protected
+  Identity? sse_decode_opt_box_autoadd_identity(SseDeserializer deserializer);
+
+  @protected
   PullStrategy? sse_decode_opt_box_autoadd_pull_strategy(
     SseDeserializer deserializer,
   );
@@ -528,6 +575,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   UpdateInfo? sse_decode_opt_box_autoadd_update_info(
     SseDeserializer deserializer,
   );
+
+  @protected
+  Uint8List? sse_decode_opt_list_prim_u_8_strict(SseDeserializer deserializer);
 
   @protected
   PackageKind sse_decode_package_kind(SseDeserializer deserializer);
@@ -662,6 +712,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  void sse_encode_box_autoadd_identity(Identity self, SseSerializer serializer);
+
+  @protected
   void sse_encode_box_autoadd_platform_info(
     PlatformInfo self,
     SseSerializer serializer,
@@ -746,6 +799,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   void sse_encode_file_diff(FileDiff self, SseSerializer serializer);
 
   @protected
+  void sse_encode_file_side(FileSide self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_file_versions(FileVersions self, SseSerializer serializer);
+
+  @protected
   void sse_encode_git_hub_issue(GitHubIssue self, SseSerializer serializer);
 
   @protected
@@ -765,6 +824,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   void sse_encode_i_64(PlatformInt64 self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_identity(Identity self, SseSerializer serializer);
 
   @protected
   void sse_encode_line_kind(LineKind self, SseSerializer serializer);
@@ -818,6 +880,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  void sse_encode_list_identity(List<Identity> self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_list_prim_u_8_loose(List<int> self, SseSerializer serializer);
+
+  @protected
   void sse_encode_list_prim_u_8_strict(
     Uint8List self,
     SseSerializer serializer,
@@ -866,6 +934,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  void sse_encode_opt_box_autoadd_identity(
+    Identity? self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_opt_box_autoadd_pull_strategy(
     PullStrategy? self,
     SseSerializer serializer,
@@ -883,6 +957,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   @protected
   void sse_encode_opt_box_autoadd_update_info(
     UpdateInfo? self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_opt_list_prim_u_8_strict(
+    Uint8List? self,
     SseSerializer serializer,
   );
 
