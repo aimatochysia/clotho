@@ -16,3 +16,13 @@ String relativeIso(String? iso, {DateTime? now}) {
   if (t == null) return '';
   return relativeTime(t.millisecondsSinceEpoch ~/ 1000, now: now);
 }
+
+/// "512 B", "2.0 KB", "5.0 MB", "1.20 GB".
+String formatBytes(int b) {
+  if (b < 1024) return '$b B';
+  if (b < 1024 * 1024) return '${(b / 1024).toStringAsFixed(1)} KB';
+  if (b < 1024 * 1024 * 1024) {
+    return '${(b / (1024 * 1024)).toStringAsFixed(1)} MB';
+  }
+  return '${(b / (1024 * 1024 * 1024)).toStringAsFixed(2)} GB';
+}

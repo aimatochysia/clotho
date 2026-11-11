@@ -6,4 +6,5 @@ pub mod history;
 pub mod registry;
 pub mod remote;
 pub mod repo;
+pub mod update;
 pub mod watch;

@@ -38,6 +38,8 @@ sealed class CoreError with _$CoreError implements FrbException {
     required int status,
     required String message,
   }) = CoreError_GitHub;
+  const factory CoreError.integrity({required String message}) =
+      CoreError_Integrity;
   const factory CoreError.invalidInput({required String message}) =
       CoreError_InvalidInput;
   const factory CoreError.io({required String message}) = CoreError_Io;

@@ -42,3 +42,15 @@ cd app && flutter_rust_bridge_codegen generate
 ```
 
 Commits follow [Conventional Commits](https://www.conventionalcommits.org/) (`feat:`, `fix:`, `perf:` …); release notes are generated from them.
+
+## Releasing
+
+Releases are made from the **Actions** tab: run **Release** on `main`, pick a bump (patch, minor or major) or type an exact version. The workflow:
+
+1. works out the next version from the latest `v*` tag and writes release notes from the Conventional Commits since then (git-cliff, `cliff.toml`);
+2. builds the Linux `.deb`, Arch `.pkg.tar.zst` and `tar.gz`, the Android APKs (signed with the release key), the macOS `.dmg`, and the Windows installer and zip;
+3. writes `SHA256SUMS.txt`, signs it with the minisign key (`SHA256SUMS.txt.minisig`), and publishes everything as a GitHub release tagged `vX.Y.Z`;
+4. updates the download page on GitHub Pages.
+
+Pull requests that change packaging run the same pipeline as a dry run (version 0.0.0, nothing published). The app checks for new releases on start, downloads the package for its platform, and installs it only if both the signature and the SHA-256 match (`app/rust/src/api/update.rs`).
+

@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 
 import '../../core/errors.dart';
+import '../../core/format.dart';
 import '../../core/git_service.dart';
 import '../../core/github_service.dart';
 import '../../state/app_controller.dart';
@@ -268,13 +269,4 @@ class _CloneProgressDialogState extends State<_CloneProgressDialog> {
       ],
     );
   }
-}
-
-String formatBytes(int b) {
-  if (b < 1024) return '$b B';
-  if (b < 1024 * 1024) return '${(b / 1024).toStringAsFixed(1)} KB';
-  if (b < 1024 * 1024 * 1024) {
-    return '${(b / (1024 * 1024)).toStringAsFixed(1)} MB';
-  }
-  return '${(b / (1024 * 1024 * 1024)).toStringAsFixed(2)} GB';
 }

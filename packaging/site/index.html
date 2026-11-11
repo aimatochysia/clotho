@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Clotho downloads</title>
+<meta name="description" content="Download Clotho {{VERSION}}, a Git and GitHub repository manager for Windows, macOS, Linux and Android.">
+<style>
+  :root { --bg:#fdfbff; --fg:#1c1b1f; --muted:#5f5b66; --card:#f3edf7; --accent:#6750a4; --line:#e0d8ea; }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg:#141218; --fg:#e6e0e9; --muted:#b0a8bb; --card:#211f26; --accent:#d0bcff; --line:#36323d; }
+  }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--fg); font:16px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  main { max-width: 920px; margin: 0 auto; padding: 32px 16px 64px; }
+  h1 { margin: 0 0 4px; font-size: 2rem; }
+  .lead { color: var(--muted); margin: 0 0 24px; }
+  .grid { display:grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; }
+  .card { background: var(--card); border-radius: 16px; padding: 16px 20px; }
+  .card h2 { margin: 0 0 8px; font-size: 1.15rem; }
+  ul { list-style: none; margin: 0; padding: 0; }
+  li { padding: 10px 0; border-top: 1px solid var(--line); }
+  li:first-child { border-top: 0; }
+  a { color: var(--accent); }
+  .dl { font-weight: 600; text-decoration: none; display:block; }
+  .dl:hover { text-decoration: underline; }
+  .file { display:block; color: var(--muted); font-size: .85rem; overflow-wrap:anywhere; }
+  .sum { display:block; color: var(--muted); font-size: .72rem; overflow-wrap:anywhere; }
+  details { margin-top: 24px; background: var(--card); border-radius: 16px; padding: 12px 20px; }
+  summary { cursor: pointer; font-weight: 600; }
+  pre { white-space: pre-wrap; overflow-wrap:anywhere; font: .9rem/1.5 ui-monospace, monospace; }
+  footer { margin-top: 32px; color: var(--muted); font-size: .9rem; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Clotho {{VERSION}}</h1>
+  <p class="lead">Manage Git and GitHub repositories anywhere on your disk. Already installed? Clotho checks for updates itself and verifies every download.</p>
+  <div class="grid">
+{{CARDS}}
+  </div>
+  <details>
+    <summary>Release notes</summary>
+    <pre>{{NOTES}}</pre>
+  </details>
+  <details>
+    <summary>Verify a download</summary>
+    <p>Every file is listed in <a href="{{BASE}}/SHA256SUMS.txt">SHA256SUMS.txt</a>, which is signed with the Clotho release key (<a href="clotho-update.pub">clotho-update.pub</a>). With <a href="https://jedisct1.github.io/minisign/">minisign</a> installed:</p>
+    <pre>minisign -Vm SHA256SUMS.txt -p clotho-update.pub
+sha256sum --check --ignore-missing SHA256SUMS.txt</pre>
+  </details>
+  <footer>
+    <a href="https://github.com/{{REPO}}/releases">All releases</a> ·
+    <a href="https://github.com/{{REPO}}">Source code</a> ·
+    <a href="https://github.com/{{REPO}}/issues">Report a problem</a>
+  </footer>
+</main>
+</body>
+</html>

@@ -8,6 +8,7 @@ import 'github/repos_page.dart';
 import 'github/sign_in.dart';
 import 'repo_page.dart';
 import 'settings_page.dart';
+import 'update_ui.dart';
 import 'widgets/feedback.dart';
 
 class DashboardPage extends StatefulWidget {
@@ -98,6 +99,7 @@ class _DashboardPageState extends State<DashboardPage> {
                   child: ListView(
                     padding: const EdgeInsets.fromLTRB(12, 8, 12, 96),
                     children: [
+                      const UpdateBanner(),
                       if (app.repos.length > 6)
                         Padding(
                           padding: const EdgeInsets.only(bottom: 8),
@@ -172,6 +174,7 @@ class _EmptyState extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
+          const UpdateBanner(),
           Icon(
             Icons.folder_open,
             size: 64,

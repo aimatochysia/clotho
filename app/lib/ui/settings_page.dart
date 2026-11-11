@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../core/git_service.dart';
 import '../state/app_controller.dart';
+import 'update_ui.dart';
 import 'widgets/feedback.dart';
 
 String pullStrategyLabel(PullStrategy s) => switch (s) {
@@ -113,6 +114,7 @@ class SettingsPage extends StatelessWidget {
                 value: s.checkUpdates,
                 onChanged: (v) => save(s.copyWith(checkUpdates: v)),
               ),
+              const UpdateTile(),
               const Padding(
                 padding: EdgeInsets.all(16),
                 child: Text(

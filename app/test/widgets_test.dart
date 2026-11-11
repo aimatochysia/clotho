@@ -1,6 +1,7 @@
 import 'package:clotho/app.dart';
 import 'package:clotho/core/git_service.dart';
 import 'package:clotho/state/app_controller.dart';
+import 'package:clotho/state/update_controller.dart';
 import 'package:clotho/core/github_service.dart';
 import 'package:clotho/ui/github/repos_page.dart';
 import 'package:clotho/ui/repo_page.dart';
@@ -9,6 +10,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'fake_git.dart';
 import 'fake_github.dart';
+import 'fake_update.dart';
 
 const repo = RepoEntry(path: '/repos/demo', name: 'demo', autoFetch: true);
 
@@ -280,6 +282,38 @@ void main() {
     await tester.enterText(find.byKey(const Key('gh-filter')), 'alp');
     await tester.pumpAndSettle();
     expect(find.text('octo/old'), findsNothing);
+    app.dispose();
+  });
+
+  testWidgets('update banner opens the dialog and verifies the download', (
+    tester,
+  ) async {
+    final svc = FakeUpdateService()..next = updateInfo();
+    final updates = UpdateController(service: svc, currentVersion: '0.1.0');
+    await updates.check();
+    final git = FakeGitService(repos: [repo])
+      ..statuses[repo.path] = statusWith();
+    final app = await boot(git);
+    final gh = FakeGitHubService();
+    await tester.binding.setSurfaceSize(const Size(1200, 900));
+    await tester.pumpWidget(
+      ClothoApp(app: app, auth: fakeAuth(gh), github: gh, updates: updates),
+    );
+    await tester.pumpAndSettle();
+    expect(find.textContaining('Clotho 0.2.0 is available'), findsOneWidget);
+    await tester.tap(find.byKey(const Key('update-view')));
+    await tester.pumpAndSettle();
+    expect(find.textContaining('shiny'), findsOneWidget);
+    await tester.tap(find.byKey(const Key('update-download')));
+    await tester.pumpAndSettle();
+    expect(
+      find.textContaining('Signature and SHA-256 verified'),
+      findsOneWidget,
+    );
+    expect(
+      find.text('sudo apt install "/tmp/clotho-0.2.0-linux-amd64.deb"'),
+      findsOneWidget,
+    );
     app.dispose();
   });
 }

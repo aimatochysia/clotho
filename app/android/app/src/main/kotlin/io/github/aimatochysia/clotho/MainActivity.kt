@@ -7,13 +7,15 @@ import android.net.Uri
 import android.os.Build
 import android.os.Environment
 import android.provider.Settings
+import java.io.File
+import androidx.core.content.FileProvider
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
 
 /**
- * Exposes the "All files access" permission to Dart. Clotho manages repositories
- * in any folder, so it needs it to read and write files outside its own storage.
+ * Exposes the "All files access" permission to Dart (Clotho manages repositories
+ * in any folder) and hands verified update APKs to the system installer.
  */
 class MainActivity : FlutterActivity() {
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
@@ -29,6 +31,47 @@ class MainActivity : FlutterActivity() {
                     else -> result.notImplemented()
                 }
             }
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "clotho/install")
+            .setMethodCallHandler { call, result ->
+                when (call.method) {
+                    // Returns "started", or "permission" when the person first has to
+                    // allow installs from Clotho (the settings page is opened).
+                    "installApk" -> {
+                        val path = call.argument<String>("path")
+                        if (path == null) {
+                            result.error("args", "path missing", null)
+                        } else {
+                            try {
+                                result.success(installApk(File(path)))
+                            } catch (e: Exception) {
+                                result.error("install", e.message, null)
+                            }
+                        }
+                    }
+                    else -> result.notImplemented()
+                }
+            }
+    }
+
+    private fun installApk(file: File): String {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O &&
+            !packageManager.canRequestPackageInstalls()
+        ) {
+            startActivity(
+                Intent(
+                    Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES,
+                    Uri.parse("package:$packageName"),
+                ),
+            )
+            return "permission"
+        }
+        val uri = FileProvider.getUriForFile(this, "$packageName.updates", file)
+        val intent = Intent(Intent.ACTION_VIEW).apply {
+            setDataAndType(uri, "application/vnd.android.package-archive")
+            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_ACTIVITY_NEW_TASK)
+        }
+        startActivity(intent)
+        return "started"
     }
 
     private fun hasAccess(): Boolean =

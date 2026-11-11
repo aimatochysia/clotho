@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=Clotho
+GenericName=Git repository manager
+Comment=Manage Git and GitHub repositories anywhere on your disk
+Exec=clotho
+Icon=io.github.aimatochysia.clotho
+Terminal=false
+Categories=Development;RevisionControl;
+Keywords=git;github;repository;commit;branch;
+StartupWMClass=io.github.aimatochysia.clotho
