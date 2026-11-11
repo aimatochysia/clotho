@@ -18,11 +18,10 @@ fn run() -> Result<(), String> {
         .ok_or("usage: release-sign <file> [trusted comment]")?;
     let comment = args.next();
     let key = env::var("UPDATE_SIGNING_KEY").map_err(|_| "UPDATE_SIGNING_KEY is not set")?;
-    let password = env::var("UPDATE_SIGNING_PASSWORD")
-        .ok()
-        .filter(|p| !p.is_empty());
-    let key = key.replace("\r\n", "\n");
-    let sk = SecretKeyBox::from_string(key.trim())
+    // Never None: minisign would then prompt on a terminal and hang in CI.
+    let password = Some(env::var("UPDATE_SIGNING_PASSWORD").unwrap_or_default());
+    let key = normalize_key(&key)?;
+    let sk = SecretKeyBox::from_string(&key)
         .and_then(|b| b.into_secret_key(password))
         .map_err(|e| format!("cannot unlock the signing key: {e}"))?;
 
@@ -50,6 +49,24 @@ fn run() -> Result<(), String> {
     std::fs::write(&out, sig.to_string()).map_err(|e| format!("{out}: {e}"))?;
     println!("wrote {out}");
     Ok(())
+}
+
+/// Accepts the `.key` file as saved by minisign, but also just its key line,
+/// or both lines joined into one (easy to end up with when pasting into the
+/// GitHub secrets form), and rebuilds the two-line format.
+fn normalize_key(raw: &str) -> Result<String, String> {
+    let b64 = raw
+        .split_whitespace()
+        .filter(|t| {
+            t.len() > 100
+                && t.chars()
+                    .all(|c| c.is_ascii_alphanumeric() || matches!(c, '+' | '/' | '='))
+        })
+        .max_by_key(|t| t.len())
+        .ok_or("UPDATE_SIGNING_KEY does not contain a minisign secret key")?;
+    Ok(format!(
+        "untrusted comment: minisign encrypted secret key\n{b64}\n"
+    ))
 }
 
 fn main() -> ExitCode {
