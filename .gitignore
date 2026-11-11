@@ -1,0 +1,14 @@
+# Signing material must never be committed
+*.jks
+*.keystore
+key.properties
+*.key
+*.b64
+
+# Rust build output
+target/
+
+# OS / editor
+.DS_Store
+.idea/
+*.iml
