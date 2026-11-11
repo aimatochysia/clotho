@@ -12,7 +12,7 @@ bundle="$(realpath "$2")"
 out="$(realpath -m "$3")"
 here="$(cd "$(dirname "$0")" && pwd)"
 app_id="io.github.aimatochysia.clotho"
-icon="$here/../../app/macos/Runner/Assets.xcassets/AppIcon.appiconset/app_icon_256.png"
+icon="$here/$app_id.png"
 mkdir -p "$out"
 
 # Portable tarball.
@@ -28,11 +28,11 @@ tar -C "$work" -czf "$out/clotho-$version-linux-x86_64.tar.gz" "$(basename "$por
 root="$out/pkgroot"
 rm -rf "$root"
 install -d "$root/usr/lib/clotho" "$root/usr/bin" \
-  "$root/usr/share/applications" "$root/usr/share/icons/hicolor/256x256/apps"
+  "$root/usr/share/applications" "$root/usr/share/icons/hicolor/512x512/apps"
 cp -a "$bundle/." "$root/usr/lib/clotho/"
 ln -s ../lib/clotho/clotho "$root/usr/bin/clotho"
 install -m644 "$here/$app_id.desktop" "$root/usr/share/applications/"
-install -m644 "$icon" "$root/usr/share/icons/hicolor/256x256/apps/$app_id.png"
+install -m644 "$icon" "$root/usr/share/icons/hicolor/512x512/apps/$app_id.png"
 
 # Debian package. Debian versions may not contain '-' in the upstream part
 # without a revision, so pre-release dashes become '~' (sorts before final).

@@ -1,7 +1,7 @@
 name: Release
 
 # Run from the Actions tab on main. Pull requests that touch packaging run the
-# same pipeline as a dry run (version 0.0.0, nothing is published).
+# same pipeline as a dry run (version 0.0.<run number>, nothing is published).
 on:
   workflow_dispatch:
     inputs:
@@ -62,7 +62,8 @@ jobs:
         run: |
           set -euo pipefail
           if [ "$PUBLISH" != "true" ]; then
-            echo "version=0.0.0" >> "$GITHUB_OUTPUT"
+            # Test builds: a rising version so each one installs over the last.
+            echo "version=0.0.${GITHUB_RUN_NUMBER}" >> "$GITHUB_OUTPUT"
             exit 0
           fi
           last="$(git tag -l 'v[0-9]*' --sort=-v:refname | head -n1)"

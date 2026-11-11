@@ -63,4 +63,5 @@ out.mkdir(parents=True, exist_ok=True)
 (out / "clotho-update.pub").write_text(
     (pathlib.Path(__file__).parent.parent / "clotho-update.pub").read_text()
 )
+(out / "favicon.png").write_bytes((pathlib.Path(__file__).parent / "favicon.png").read_bytes())
 print(f"wrote {out / 'index.html'}")

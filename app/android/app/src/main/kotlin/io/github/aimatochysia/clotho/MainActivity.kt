@@ -6,18 +6,22 @@ import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.os.Environment
+import android.provider.DocumentsContract
 import android.provider.Settings
 import java.io.File
 import androidx.core.content.FileProvider
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
+import io.flutter.plugin.common.MethodChannel.Result
 
 /**
  * Exposes the "All files access" permission to Dart (Clotho manages repositories
  * in any folder) and hands verified update APKs to the system installer.
  */
 class MainActivity : FlutterActivity() {
+    private var pendingPick: Result? = null
+
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "clotho/storage")
@@ -27,6 +31,21 @@ class MainActivity : FlutterActivity() {
                     "requestAllFilesAccess" -> {
                         requestAccess()
                         result.success(null)
+                    }
+                    // Opens the system folder picker and answers with a real
+                    // filesystem path (Git cannot work with content:// URIs).
+                    "pickDirectory" -> {
+                        pendingPick?.success(null)
+                        pendingPick = result
+                        val intent = Intent(Intent.ACTION_OPEN_DOCUMENT_TREE).apply {
+                            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                        }
+                        try {
+                            startActivityForResult(intent, PICK_DIRECTORY)
+                        } catch (e: Exception) {
+                            pendingPick = null
+                            result.error("picker", e.message, null)
+                        }
                     }
                     else -> result.notImplemented()
                 }
@@ -51,6 +70,59 @@ class MainActivity : FlutterActivity() {
                     else -> result.notImplemented()
                 }
             }
+    }
+
+    @Deprecated("Uses the platform activity result API for a single request.")
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        if (requestCode != PICK_DIRECTORY) {
+            super.onActivityResult(requestCode, resultCode, data)
+            return
+        }
+        val result = pendingPick ?: return
+        pendingPick = null
+        val uri = data?.data
+        if (resultCode != RESULT_OK || uri == null) {
+            result.success(null)
+            return
+        }
+        val path = treeUriToPath(uri)
+        if (path == null) {
+            result.error(
+                "unsupported",
+                "That location is not a folder on this device's storage. Pick a folder on internal storage or an SD card.",
+                null,
+            )
+        } else {
+            result.success(path)
+        }
+    }
+
+    /** Maps a document-tree URI from the system picker to a filesystem path. */
+    private fun treeUriToPath(uri: Uri): String? {
+        val docId = try {
+            DocumentsContract.getTreeDocumentId(uri)
+        } catch (_: Exception) {
+            return null
+        }
+        return when (uri.authority) {
+            "com.android.externalstorage.documents" -> {
+                val volume = docId.substringBefore(':')
+                val rel = docId.substringAfter(':', "")
+                val base = if (volume.equals("primary", ignoreCase = true)) {
+                    Environment.getExternalStorageDirectory().path
+                } else {
+                    "/storage/$volume"
+                }
+                if (rel.isEmpty()) base else "$base/$rel"
+            }
+            "com.android.providers.downloads.documents" -> when {
+                docId.startsWith("raw:") -> docId.removePrefix("raw:")
+                docId == "downloads" -> Environment
+                    .getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).path
+                else -> null
+            }
+            else -> null
+        }?.takeIf { File(it).isDirectory }
     }
 
     private fun installApk(file: File): String {
@@ -104,3 +176,5 @@ class MainActivity : FlutterActivity() {
         }
     }
 }
+
+private const val PICK_DIRECTORY = 4101

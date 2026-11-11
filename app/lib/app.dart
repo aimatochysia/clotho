@@ -7,6 +7,7 @@ import 'state/github_scope.dart';
 import 'state/update_controller.dart';
 import 'state/update_scope.dart';
 import 'ui/dashboard_page.dart';
+import 'ui/theme.dart';
 
 class ClothoApp extends StatelessWidget {
   const ClothoApp({
@@ -24,7 +25,6 @@ class ClothoApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const seed = Color(0xFF6750A4);
     final u = updates;
     final Widget root = GitHubScope(
       auth: auth,
@@ -32,12 +32,8 @@ class ClothoApp extends StatelessWidget {
       child: MaterialApp(
         title: 'Clotho',
         debugShowCheckedModeBanner: false,
-        theme: ThemeData(colorSchemeSeed: seed, useMaterial3: true),
-        darkTheme: ThemeData(
-          colorSchemeSeed: seed,
-          brightness: Brightness.dark,
-          useMaterial3: true,
-        ),
+        theme: ClothoTheme.light,
+        darkTheme: ClothoTheme.dark,
         home: DashboardPage(app: app),
       ),
     );

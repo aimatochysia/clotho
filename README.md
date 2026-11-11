@@ -52,5 +52,5 @@ Releases are made from the **Actions** tab: run **Release** on `main`, pick a bu
 3. writes `SHA256SUMS.txt`, signs it with the minisign key (`SHA256SUMS.txt.minisig`), and publishes everything as a GitHub release tagged `vX.Y.Z`;
 4. updates the download page on GitHub Pages.
 
-Pull requests that change packaging run the same pipeline as a dry run (version 0.0.0, nothing published). The app checks for new releases on start, downloads the package for its platform, and installs it only if both the signature and the SHA-256 match (`app/rust/src/api/update.rs`).
+Pull requests that change packaging run the same pipeline as a dry run (version 0.0.<run number>, nothing published; the packages are kept as workflow artifacts for testing). The app checks for new releases on start, downloads the package for its platform, and installs it only if both the signature and the SHA-256 match (`app/rust/src/api/update.rs`).
 

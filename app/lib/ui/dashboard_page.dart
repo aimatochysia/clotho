@@ -175,10 +175,11 @@ class _EmptyState extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           const UpdateBanner(),
-          Icon(
-            Icons.folder_open,
-            size: 64,
-            color: Theme.of(context).colorScheme.primary,
+          Image.asset(
+            'assets/logo.png',
+            height: 120,
+            filterQuality: FilterQuality.none,
+            semanticLabel: 'Clotho',
           ),
           const SizedBox(height: 16),
           Text(
