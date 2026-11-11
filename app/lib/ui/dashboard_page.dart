@@ -3,6 +3,9 @@ import 'package:flutter/material.dart';
 import '../core/git_service.dart';
 import '../state/app_controller.dart';
 import 'add_repo.dart';
+import 'github/clone.dart';
+import 'github/repos_page.dart';
+import 'github/sign_in.dart';
 import 'repo_page.dart';
 import 'settings_page.dart';
 import 'widgets/feedback.dart';
@@ -75,6 +78,7 @@ class _DashboardPageState extends State<DashboardPage> {
                       )
                     : const Icon(Icons.sync),
               ),
+              const AccountButton(),
               IconButton(
                 tooltip: 'Settings',
                 icon: const Icon(Icons.settings_outlined),
@@ -136,6 +140,17 @@ class _AddMenu extends StatelessWidget {
         onPressed: () => scanFolder(context, app),
         child: const Text('Scan a folder for repositories'),
       ),
+      MenuItemButton(
+        key: const Key('menu-clone-github'),
+        leadingIcon: const Icon(Icons.cloud_download_outlined),
+        onPressed: () => openGitHubRepos(context, app),
+        child: const Text('Clone from GitHub'),
+      ),
+      MenuItemButton(
+        leadingIcon: const Icon(Icons.link),
+        onPressed: () => cloneRepository(context, app),
+        child: const Text('Clone from URL'),
+      ),
     ],
     builder: (context, menu, _) => FloatingActionButton.extended(
       key: const Key('add-repo'),
@@ -169,8 +184,9 @@ class _EmptyState extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           const Text(
-            'Add a folder that contains a Git repository, or scan a parent folder '
-            'to add many at once. Clotho never moves your files.',
+            'Add a folder that contains a Git repository, scan a parent folder '
+            'to add many at once, or clone one from GitHub. Clotho never moves '
+            'your files.',
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 24),
@@ -188,6 +204,11 @@ class _EmptyState extends StatelessWidget {
                 onPressed: () => scanFolder(context, app),
                 icon: const Icon(Icons.travel_explore),
                 label: const Text('Scan folder'),
+              ),
+              OutlinedButton.icon(
+                onPressed: () => openGitHubRepos(context, app),
+                icon: const Icon(Icons.cloud_download_outlined),
+                label: const Text('Clone from GitHub'),
               ),
             ],
           ),

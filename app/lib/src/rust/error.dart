@@ -32,6 +32,12 @@ sealed class CoreError with _$CoreError implements FrbException {
   const factory CoreError.auth({required String message}) = CoreError_Auth;
   const factory CoreError.pushRejected({required String message}) =
       CoreError_PushRejected;
+  const factory CoreError.network({required String message}) =
+      CoreError_Network;
+  const factory CoreError.gitHub({
+    required int status,
+    required String message,
+  }) = CoreError_GitHub;
   const factory CoreError.invalidInput({required String message}) =
       CoreError_InvalidInput;
   const factory CoreError.io({required String message}) = CoreError_Io;

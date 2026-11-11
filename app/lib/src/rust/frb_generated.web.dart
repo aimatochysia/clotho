@@ -9,6 +9,7 @@
 import 'api/app.dart';
 import 'api/branches.dart';
 import 'api/changes.dart';
+import 'api/github.dart';
 import 'api/history.dart';
 import 'api/registry.dart';
 import 'api/remote.dart';
@@ -33,6 +34,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   AnyhowException dco_decode_AnyhowException(dynamic raw);
+
+  @protected
+  RustStreamSink<CloneProgress> dco_decode_StreamSink_clone_progress_Sse(
+    dynamic raw,
+  );
 
   @protected
   RustStreamSink<int> dco_decode_StreamSink_u_32_Sse(dynamic raw);
@@ -65,6 +71,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   ChangeKind dco_decode_box_autoadd_change_kind(dynamic raw);
 
   @protected
+  GitHubRemote dco_decode_box_autoadd_git_hub_remote(dynamic raw);
+
+  @protected
   PullStrategy dco_decode_box_autoadd_pull_strategy(dynamic raw);
 
   @protected
@@ -80,6 +89,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   ChangeKind dco_decode_change_kind(dynamic raw);
 
   @protected
+  CloneProgress dco_decode_clone_progress(dynamic raw);
+
+  @protected
   CommitInfo dco_decode_commit_info(dynamic raw);
 
   @protected
@@ -87,6 +99,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   CoreError dco_decode_core_error(dynamic raw);
+
+  @protected
+  DeviceCode dco_decode_device_code(dynamic raw);
+
+  @protected
+  DevicePoll dco_decode_device_poll(dynamic raw);
 
   @protected
   DiffHunk dco_decode_diff_hunk(dynamic raw);
@@ -102,6 +120,21 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   FileDiff dco_decode_file_diff(dynamic raw);
+
+  @protected
+  GitHubIssue dco_decode_git_hub_issue(dynamic raw);
+
+  @protected
+  GitHubPull dco_decode_git_hub_pull(dynamic raw);
+
+  @protected
+  GitHubRemote dco_decode_git_hub_remote(dynamic raw);
+
+  @protected
+  GitHubRepo dco_decode_git_hub_repo(dynamic raw);
+
+  @protected
+  GitHubUser dco_decode_git_hub_user(dynamic raw);
 
   @protected
   int dco_decode_i_32(dynamic raw);
@@ -134,6 +167,15 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   List<FileDiff> dco_decode_list_file_diff(dynamic raw);
 
   @protected
+  List<GitHubIssue> dco_decode_list_git_hub_issue(dynamic raw);
+
+  @protected
+  List<GitHubPull> dco_decode_list_git_hub_pull(dynamic raw);
+
+  @protected
+  List<GitHubRepo> dco_decode_list_git_hub_repo(dynamic raw);
+
+  @protected
   Uint8List dco_decode_list_prim_u_8_strict(dynamic raw);
 
   @protected
@@ -143,6 +185,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   List<SkippedPath> dco_decode_list_skipped_path(dynamic raw);
 
   @protected
+  List<WorkflowRun> dco_decode_list_workflow_run(dynamic raw);
+
+  @protected
   String? dco_decode_opt_String(dynamic raw);
 
   @protected
@@ -150,6 +195,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   ChangeKind? dco_decode_opt_box_autoadd_change_kind(dynamic raw);
+
+  @protected
+  GitHubRemote? dco_decode_opt_box_autoadd_git_hub_remote(dynamic raw);
 
   @protected
   PullStrategy? dco_decode_opt_box_autoadd_pull_strategy(dynamic raw);
@@ -188,7 +236,13 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   SkippedPath dco_decode_skipped_path(dynamic raw);
 
   @protected
+  int dco_decode_u_16(dynamic raw);
+
+  @protected
   int dco_decode_u_32(dynamic raw);
+
+  @protected
+  BigInt dco_decode_u_64(dynamic raw);
 
   @protected
   int dco_decode_u_8(dynamic raw);
@@ -197,7 +251,15 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   void dco_decode_unit(dynamic raw);
 
   @protected
+  WorkflowRun dco_decode_workflow_run(dynamic raw);
+
+  @protected
   AnyhowException sse_decode_AnyhowException(SseDeserializer deserializer);
+
+  @protected
+  RustStreamSink<CloneProgress> sse_decode_StreamSink_clone_progress_Sse(
+    SseDeserializer deserializer,
+  );
 
   @protected
   RustStreamSink<int> sse_decode_StreamSink_u_32_Sse(
@@ -232,6 +294,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   ChangeKind sse_decode_box_autoadd_change_kind(SseDeserializer deserializer);
 
   @protected
+  GitHubRemote sse_decode_box_autoadd_git_hub_remote(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   PullStrategy sse_decode_box_autoadd_pull_strategy(
     SseDeserializer deserializer,
   );
@@ -249,6 +316,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   ChangeKind sse_decode_change_kind(SseDeserializer deserializer);
 
   @protected
+  CloneProgress sse_decode_clone_progress(SseDeserializer deserializer);
+
+  @protected
   CommitInfo sse_decode_commit_info(SseDeserializer deserializer);
 
   @protected
@@ -256,6 +326,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   CoreError sse_decode_core_error(SseDeserializer deserializer);
+
+  @protected
+  DeviceCode sse_decode_device_code(SseDeserializer deserializer);
+
+  @protected
+  DevicePoll sse_decode_device_poll(SseDeserializer deserializer);
 
   @protected
   DiffHunk sse_decode_diff_hunk(SseDeserializer deserializer);
@@ -271,6 +347,21 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   FileDiff sse_decode_file_diff(SseDeserializer deserializer);
+
+  @protected
+  GitHubIssue sse_decode_git_hub_issue(SseDeserializer deserializer);
+
+  @protected
+  GitHubPull sse_decode_git_hub_pull(SseDeserializer deserializer);
+
+  @protected
+  GitHubRemote sse_decode_git_hub_remote(SseDeserializer deserializer);
+
+  @protected
+  GitHubRepo sse_decode_git_hub_repo(SseDeserializer deserializer);
+
+  @protected
+  GitHubUser sse_decode_git_hub_user(SseDeserializer deserializer);
 
   @protected
   int sse_decode_i_32(SseDeserializer deserializer);
@@ -303,6 +394,15 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   List<FileDiff> sse_decode_list_file_diff(SseDeserializer deserializer);
 
   @protected
+  List<GitHubIssue> sse_decode_list_git_hub_issue(SseDeserializer deserializer);
+
+  @protected
+  List<GitHubPull> sse_decode_list_git_hub_pull(SseDeserializer deserializer);
+
+  @protected
+  List<GitHubRepo> sse_decode_list_git_hub_repo(SseDeserializer deserializer);
+
+  @protected
   Uint8List sse_decode_list_prim_u_8_strict(SseDeserializer deserializer);
 
   @protected
@@ -312,6 +412,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   List<SkippedPath> sse_decode_list_skipped_path(SseDeserializer deserializer);
 
   @protected
+  List<WorkflowRun> sse_decode_list_workflow_run(SseDeserializer deserializer);
+
+  @protected
   String? sse_decode_opt_String(SseDeserializer deserializer);
 
   @protected
@@ -319,6 +422,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   ChangeKind? sse_decode_opt_box_autoadd_change_kind(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  GitHubRemote? sse_decode_opt_box_autoadd_git_hub_remote(
     SseDeserializer deserializer,
   );
 
@@ -361,7 +469,13 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   SkippedPath sse_decode_skipped_path(SseDeserializer deserializer);
 
   @protected
+  int sse_decode_u_16(SseDeserializer deserializer);
+
+  @protected
   int sse_decode_u_32(SseDeserializer deserializer);
+
+  @protected
+  BigInt sse_decode_u_64(SseDeserializer deserializer);
 
   @protected
   int sse_decode_u_8(SseDeserializer deserializer);
@@ -370,8 +484,17 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   void sse_decode_unit(SseDeserializer deserializer);
 
   @protected
+  WorkflowRun sse_decode_workflow_run(SseDeserializer deserializer);
+
+  @protected
   void sse_encode_AnyhowException(
     AnyhowException self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_StreamSink_clone_progress_Sse(
+    RustStreamSink<CloneProgress> self,
     SseSerializer serializer,
   );
 
@@ -418,6 +541,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  void sse_encode_box_autoadd_git_hub_remote(
+    GitHubRemote self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_box_autoadd_pull_strategy(
     PullStrategy self,
     SseSerializer serializer,
@@ -439,6 +568,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   void sse_encode_change_kind(ChangeKind self, SseSerializer serializer);
 
   @protected
+  void sse_encode_clone_progress(CloneProgress self, SseSerializer serializer);
+
+  @protected
   void sse_encode_commit_info(CommitInfo self, SseSerializer serializer);
 
   @protected
@@ -446,6 +578,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   void sse_encode_core_error(CoreError self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_device_code(DeviceCode self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_device_poll(DevicePoll self, SseSerializer serializer);
 
   @protected
   void sse_encode_diff_hunk(DiffHunk self, SseSerializer serializer);
@@ -461,6 +599,21 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   void sse_encode_file_diff(FileDiff self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_git_hub_issue(GitHubIssue self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_git_hub_pull(GitHubPull self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_git_hub_remote(GitHubRemote self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_git_hub_repo(GitHubRepo self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_git_hub_user(GitHubUser self, SseSerializer serializer);
 
   @protected
   void sse_encode_i_32(int self, SseSerializer serializer);
@@ -502,6 +655,24 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   void sse_encode_list_file_diff(List<FileDiff> self, SseSerializer serializer);
 
   @protected
+  void sse_encode_list_git_hub_issue(
+    List<GitHubIssue> self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_list_git_hub_pull(
+    List<GitHubPull> self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_list_git_hub_repo(
+    List<GitHubRepo> self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_list_prim_u_8_strict(
     Uint8List self,
     SseSerializer serializer,
@@ -520,6 +691,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  void sse_encode_list_workflow_run(
+    List<WorkflowRun> self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_opt_String(String? self, SseSerializer serializer);
 
   @protected
@@ -528,6 +705,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   @protected
   void sse_encode_opt_box_autoadd_change_kind(
     ChangeKind? self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_opt_box_autoadd_git_hub_remote(
+    GitHubRemote? self,
     SseSerializer serializer,
   );
 
@@ -571,13 +754,22 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   void sse_encode_skipped_path(SkippedPath self, SseSerializer serializer);
 
   @protected
+  void sse_encode_u_16(int self, SseSerializer serializer);
+
+  @protected
   void sse_encode_u_32(int self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_u_64(BigInt self, SseSerializer serializer);
 
   @protected
   void sse_encode_u_8(int self, SseSerializer serializer);
 
   @protected
   void sse_encode_unit(void self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_workflow_run(WorkflowRun self, SseSerializer serializer);
 }
 
 // Section: wire_class

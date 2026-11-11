@@ -27,21 +27,6 @@ class SettingsPage extends StatelessWidget {
   const SettingsPage({super.key, required this.app});
   final AppController app;
 
-  AppSettings _with(
-    AppSettings s, {
-    int? autoFetchMinutes,
-    PullStrategy? pullStrategy,
-    bool? pushAfterCommit,
-    int? scanDepth,
-    bool? checkUpdates,
-  }) => AppSettings(
-    autoFetchMinutes: autoFetchMinutes ?? s.autoFetchMinutes,
-    pullStrategy: pullStrategy ?? s.pullStrategy,
-    pushAfterCommit: pushAfterCommit ?? s.pushAfterCommit,
-    scanDepth: scanDepth ?? s.scanDepth,
-    checkUpdates: checkUpdates ?? s.checkUpdates,
-  );
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -73,7 +58,7 @@ class SettingsPage extends StatelessWidget {
                         child: Text(autoFetchLabel(m)),
                       ),
                   ],
-                  onChanged: (m) => save(_with(s, autoFetchMinutes: m)),
+                  onChanged: (m) => save(s.copyWith(autoFetchMinutes: m)),
                 ),
               ),
               ListTile(
@@ -90,7 +75,7 @@ class SettingsPage extends StatelessWidget {
                         child: Text(pullStrategyLabel(p)),
                       ),
                   ],
-                  onChanged: (p) => save(_with(s, pullStrategy: p)),
+                  onChanged: (p) => save(s.copyWith(pullStrategy: p)),
                 ),
               ),
               SwitchListTile(
@@ -103,7 +88,7 @@ class SettingsPage extends StatelessWidget {
                       : 'Commits stay local until you press Push.',
                 ),
                 value: s.pushAfterCommit,
-                onChanged: (v) => save(_with(s, pushAfterCommit: v)),
+                onChanged: (v) => save(s.copyWith(pushAfterCommit: v)),
               ),
               const _Header('Repositories'),
               ListTile(
@@ -118,7 +103,7 @@ class SettingsPage extends StatelessWidget {
                     for (var d = 1; d <= 8; d++)
                       DropdownMenuItem(value: d, child: Text('$d')),
                   ],
-                  onChanged: (d) => save(_with(s, scanDepth: d)),
+                  onChanged: (d) => save(s.copyWith(scanDepth: d)),
                 ),
               ),
               const _Header('Updates'),
@@ -126,7 +111,7 @@ class SettingsPage extends StatelessWidget {
                 secondary: const Icon(Icons.system_update),
                 title: const Text('Check for updates on start'),
                 value: s.checkUpdates,
-                onChanged: (v) => save(_with(s, checkUpdates: v)),
+                onChanged: (v) => save(s.copyWith(checkUpdates: v)),
               ),
               const Padding(
                 padding: EdgeInsets.all(16),

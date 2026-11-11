@@ -16,7 +16,7 @@ packaging/           release packaging files and the update-signing public key
 
 ## Development
 
-Requirements: Flutter 3.47 (stable), Rust stable via rustup, and the usual platform toolchain (GTK 3 dev libraries on Linux, Visual Studio on Windows, Xcode on macOS, Android SDK for Android).
+Requirements: Flutter 3.47 (stable), Rust stable via rustup, and the usual platform toolchain (GTK 3 and libsecret dev libraries on Linux, Visual Studio on Windows, Xcode on macOS, Android SDK for Android).
 
 ```sh
 cd app
@@ -25,6 +25,14 @@ flutter run                      # builds the Rust crate automatically
 flutter test                     # Dart unit and widget tests
 (cd rust && cargo test)          # Rust tests
 ```
+
+Browser sign-in to GitHub needs the OAuth App client id at build time; without it only personal access tokens work:
+
+```sh
+flutter run --dart-define=CLOTHO_GITHUB_CLIENT_ID=Ov23li...
+```
+
+The token is stored in the OS keychain (Keychain, Credential Manager, libsecret, Android Keystore) and is only ever sent to `github.com`.
 
 After changing anything under `app/rust/src/api/`, regenerate the bindings:
 
