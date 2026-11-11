@@ -4,16 +4,11 @@
 // ignore_for_file: invalid_use_of_internal_member, unused_import, unnecessary_import
 
 import '../frb_generated.dart';
+
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
-
-            
-
-            /// Version of the Rust core, taken from Cargo.toml at build time.
-String  coreVersion() => RustLib.instance.api.crateApiAppCoreVersion();
+/// Version of the Rust core, taken from Cargo.toml at build time.
+String coreVersion() => RustLib.instance.api.crateApiAppCoreVersion();
 
 /// Version of the statically linked libgit2.
-String  libgit2Version() => RustLib.instance.api.crateApiAppLibgit2Version();
-
-            
-            
+String libgit2Version() => RustLib.instance.api.crateApiAppLibgit2Version();

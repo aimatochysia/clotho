@@ -5,43 +5,178 @@
 
 import '../error.dart';
 import '../frb_generated.dart';
+
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
+// These functions are ignored because they are not marked as `pub`: `scan_dir`, `status_of`, `upstream_counts`
+// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `clone`, `clone`, `clone`, `clone`, `clone`, `eq`, `eq`, `eq`, `eq`, `eq`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`
 
-            // These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `assert_fields_are_eq`, `clone`, `eq`, `fmt`
+/// Opens the repository at exactly `path` (no searching in parent folders).
+Future<RepoInfo> inspectRepo({required String path}) =>
+    RustLib.instance.api.crateApiRepoInspectRepo(path: path);
 
+/// Finds every Git repository under `root`, up to `max_depth` folders deep.
+/// A found repository is not searched further (its submodules are skipped).
+/// Symlinks and hidden folders are not followed.
+Future<List<String>> scanForRepos({
+  required String root,
+  required int maxDepth,
+}) => RustLib.instance.api.crateApiRepoScanForRepos(
+  root: root,
+  maxDepth: maxDepth,
+);
 
-            /// Opens the repository at exactly `path` (no searching in parent folders) and
-/// describes it. Runs on a background thread, so it never blocks the UI.
-Future<RepoInfo>  inspectRepo({required String path }) => RustLib.instance.api.crateApiRepoInspectRepo(path: path);
+/// Full working-tree status, including ahead/behind against the upstream.
+Future<RepoStatus> repoStatus({required String path}) =>
+    RustLib.instance.api.crateApiRepoRepoStatus(path: path);
 
-            /// Basic facts about a repository on disk.
-class RepoInfo  {
-                /// Absolute path of the working directory (or the .git folder for a bare repo).
-final String path;
-/// Current branch name, or None when HEAD is detached or the repo has no commits.
-final String? branch;
-final bool isBare;
-/// True when the repository has no commits yet.
-final bool isEmpty;
+enum ChangeKind { added, modified, deleted, renamed, typeChanged, untracked }
 
-                const RepoInfo({required this.path ,this.branch ,required this.isBare ,required this.isEmpty ,});
+/// One changed file. A file can have both staged and unstaged changes.
+class FileChange {
+  final String path;
 
+  /// Previous path when the file was renamed.
+  final String? oldPath;
+  final ChangeKind? staged;
+  final ChangeKind? unstaged;
+  final bool conflicted;
 
+  const FileChange({
+    required this.path,
+    this.oldPath,
+    this.staged,
+    this.unstaged,
+    required this.conflicted,
+  });
 
+  @override
+  int get hashCode =>
+      path.hashCode ^
+      oldPath.hashCode ^
+      staged.hashCode ^
+      unstaged.hashCode ^
+      conflicted.hashCode;
 
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is FileChange &&
+          runtimeType == other.runtimeType &&
+          path == other.path &&
+          oldPath == other.oldPath &&
+          staged == other.staged &&
+          unstaged == other.unstaged &&
+          conflicted == other.conflicted;
+}
 
-        @override
-        int get hashCode => path.hashCode^branch.hashCode^isBare.hashCode^isEmpty.hashCode;
+/// Basic facts about a repository on disk.
+class RepoInfo {
+  /// Absolute path of the working directory (or the .git folder for a bare repo).
+  final String path;
 
+  /// Current branch name, or None when HEAD is detached.
+  final String? branch;
+  final bool isBare;
 
+  /// True when the repository has no commits yet.
+  final bool isEmpty;
 
-        @override
-        bool operator ==(Object other) =>
-            identical(this, other) ||
-            other is RepoInfo &&
-                runtimeType == other.runtimeType
-                && path == other.path&& branch == other.branch&& isBare == other.isBare&& isEmpty == other.isEmpty;
+  const RepoInfo({
+    required this.path,
+    this.branch,
+    required this.isBare,
+    required this.isEmpty,
+  });
 
-            }
-            
+  @override
+  int get hashCode =>
+      path.hashCode ^ branch.hashCode ^ isBare.hashCode ^ isEmpty.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is RepoInfo &&
+          runtimeType == other.runtimeType &&
+          path == other.path &&
+          branch == other.branch &&
+          isBare == other.isBare &&
+          isEmpty == other.isEmpty;
+}
+
+enum RepoState {
+  clean,
+  merging,
+  rebasing,
+  cherryPicking,
+  reverting,
+  bisecting,
+  other,
+}
+
+class RepoStatus {
+  final String path;
+
+  /// None when HEAD is detached.
+  final String? branch;
+  final String? headShortOid;
+
+  /// For example `origin/main`.
+  final String? upstream;
+
+  /// Commits on the local branch that the upstream does not have.
+  final int ahead;
+
+  /// Commits on the upstream that the local branch does not have.
+  final int behind;
+  final RepoState state;
+  final List<FileChange> files;
+  final int stagedCount;
+  final int unstagedCount;
+  final int conflictedCount;
+
+  const RepoStatus({
+    required this.path,
+    this.branch,
+    this.headShortOid,
+    this.upstream,
+    required this.ahead,
+    required this.behind,
+    required this.state,
+    required this.files,
+    required this.stagedCount,
+    required this.unstagedCount,
+    required this.conflictedCount,
+  });
+
+  @override
+  int get hashCode =>
+      path.hashCode ^
+      branch.hashCode ^
+      headShortOid.hashCode ^
+      upstream.hashCode ^
+      ahead.hashCode ^
+      behind.hashCode ^
+      state.hashCode ^
+      files.hashCode ^
+      stagedCount.hashCode ^
+      unstagedCount.hashCode ^
+      conflictedCount.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is RepoStatus &&
+          runtimeType == other.runtimeType &&
+          path == other.path &&
+          branch == other.branch &&
+          headShortOid == other.headShortOid &&
+          upstream == other.upstream &&
+          ahead == other.ahead &&
+          behind == other.behind &&
+          state == other.state &&
+          files == other.files &&
+          stagedCount == other.stagedCount &&
+          unstagedCount == other.unstagedCount &&
+          conflictedCount == other.conflictedCount;
+}
