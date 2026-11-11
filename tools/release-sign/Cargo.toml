@@ -1,0 +1,11 @@
+[package]
+name = "release-sign"
+version = "0.1.0"
+edition = "2021"
+publish = false
+description = "Signs release checksum files with the Clotho minisign key in CI"
+
+[dependencies]
+minisign = "0.10"
+
+[workspace]

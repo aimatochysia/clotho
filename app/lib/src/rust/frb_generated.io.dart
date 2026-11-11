@@ -11,6 +11,7 @@ import 'api/history.dart';
 import 'api/registry.dart';
 import 'api/remote.dart';
 import 'api/repo.dart';
+import 'api/update.dart';
 import 'api/watch.dart';
 
 import 'dart:async';
@@ -35,6 +36,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   RustStreamSink<CloneProgress> dco_decode_StreamSink_clone_progress_Sse(
+    dynamic raw,
+  );
+
+  @protected
+  RustStreamSink<DownloadProgress> dco_decode_StreamSink_download_progress_Sse(
     dynamic raw,
   );
 
@@ -72,13 +78,25 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   GitHubRemote dco_decode_box_autoadd_git_hub_remote(dynamic raw);
 
   @protected
+  PlatformInt64 dco_decode_box_autoadd_i_64(dynamic raw);
+
+  @protected
+  PlatformInfo dco_decode_box_autoadd_platform_info(dynamic raw);
+
+  @protected
   PullStrategy dco_decode_box_autoadd_pull_strategy(dynamic raw);
+
+  @protected
+  ReleaseAsset dco_decode_box_autoadd_release_asset(dynamic raw);
 
   @protected
   RepoEntry dco_decode_box_autoadd_repo_entry(dynamic raw);
 
   @protected
   int dco_decode_box_autoadd_u_32(dynamic raw);
+
+  @protected
+  UpdateInfo dco_decode_box_autoadd_update_info(dynamic raw);
 
   @protected
   BranchInfo dco_decode_branch_info(dynamic raw);
@@ -111,7 +129,16 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   DiffLine dco_decode_diff_line(dynamic raw);
 
   @protected
+  DownloadProgress dco_decode_download_progress(dynamic raw);
+
+  @protected
   FetchResult dco_decode_fetch_result(dynamic raw);
+
+  @protected
+  FetchSchedule dco_decode_fetch_schedule(dynamic raw);
+
+  @protected
+  FetchUnit dco_decode_fetch_unit(dynamic raw);
 
   @protected
   FileChange dco_decode_file_change(dynamic raw);
@@ -198,10 +225,25 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   GitHubRemote? dco_decode_opt_box_autoadd_git_hub_remote(dynamic raw);
 
   @protected
+  PlatformInt64? dco_decode_opt_box_autoadd_i_64(dynamic raw);
+
+  @protected
   PullStrategy? dco_decode_opt_box_autoadd_pull_strategy(dynamic raw);
 
   @protected
+  ReleaseAsset? dco_decode_opt_box_autoadd_release_asset(dynamic raw);
+
+  @protected
   int? dco_decode_opt_box_autoadd_u_32(dynamic raw);
+
+  @protected
+  UpdateInfo? dco_decode_opt_box_autoadd_update_info(dynamic raw);
+
+  @protected
+  PackageKind dco_decode_package_kind(dynamic raw);
+
+  @protected
+  PlatformInfo dco_decode_platform_info(dynamic raw);
 
   @protected
   PullOutcome dco_decode_pull_outcome(dynamic raw);
@@ -217,6 +259,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   Registry dco_decode_registry(dynamic raw);
+
+  @protected
+  ReleaseAsset dco_decode_release_asset(dynamic raw);
 
   @protected
   RepoEntry dco_decode_repo_entry(dynamic raw);
@@ -249,6 +294,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   void dco_decode_unit(dynamic raw);
 
   @protected
+  UpdateInfo dco_decode_update_info(dynamic raw);
+
+  @protected
   WorkflowRun dco_decode_workflow_run(dynamic raw);
 
   @protected
@@ -256,6 +304,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   RustStreamSink<CloneProgress> sse_decode_StreamSink_clone_progress_Sse(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  RustStreamSink<DownloadProgress> sse_decode_StreamSink_download_progress_Sse(
     SseDeserializer deserializer,
   );
 
@@ -297,7 +350,20 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  PlatformInt64 sse_decode_box_autoadd_i_64(SseDeserializer deserializer);
+
+  @protected
+  PlatformInfo sse_decode_box_autoadd_platform_info(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   PullStrategy sse_decode_box_autoadd_pull_strategy(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  ReleaseAsset sse_decode_box_autoadd_release_asset(
     SseDeserializer deserializer,
   );
 
@@ -306,6 +372,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   int sse_decode_box_autoadd_u_32(SseDeserializer deserializer);
+
+  @protected
+  UpdateInfo sse_decode_box_autoadd_update_info(SseDeserializer deserializer);
 
   @protected
   BranchInfo sse_decode_branch_info(SseDeserializer deserializer);
@@ -338,7 +407,16 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   DiffLine sse_decode_diff_line(SseDeserializer deserializer);
 
   @protected
+  DownloadProgress sse_decode_download_progress(SseDeserializer deserializer);
+
+  @protected
   FetchResult sse_decode_fetch_result(SseDeserializer deserializer);
+
+  @protected
+  FetchSchedule sse_decode_fetch_schedule(SseDeserializer deserializer);
+
+  @protected
+  FetchUnit sse_decode_fetch_unit(SseDeserializer deserializer);
 
   @protected
   FileChange sse_decode_file_change(SseDeserializer deserializer);
@@ -429,12 +507,31 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  PlatformInt64? sse_decode_opt_box_autoadd_i_64(SseDeserializer deserializer);
+
+  @protected
   PullStrategy? sse_decode_opt_box_autoadd_pull_strategy(
     SseDeserializer deserializer,
   );
 
   @protected
+  ReleaseAsset? sse_decode_opt_box_autoadd_release_asset(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   int? sse_decode_opt_box_autoadd_u_32(SseDeserializer deserializer);
+
+  @protected
+  UpdateInfo? sse_decode_opt_box_autoadd_update_info(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  PackageKind sse_decode_package_kind(SseDeserializer deserializer);
+
+  @protected
+  PlatformInfo sse_decode_platform_info(SseDeserializer deserializer);
 
   @protected
   PullOutcome sse_decode_pull_outcome(SseDeserializer deserializer);
@@ -450,6 +547,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   Registry sse_decode_registry(SseDeserializer deserializer);
+
+  @protected
+  ReleaseAsset sse_decode_release_asset(SseDeserializer deserializer);
 
   @protected
   RepoEntry sse_decode_repo_entry(SseDeserializer deserializer);
@@ -482,6 +582,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   void sse_decode_unit(SseDeserializer deserializer);
 
   @protected
+  UpdateInfo sse_decode_update_info(SseDeserializer deserializer);
+
+  @protected
   WorkflowRun sse_decode_workflow_run(SseDeserializer deserializer);
 
   @protected
@@ -493,6 +596,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   @protected
   void sse_encode_StreamSink_clone_progress_Sse(
     RustStreamSink<CloneProgress> self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_StreamSink_download_progress_Sse(
+    RustStreamSink<DownloadProgress> self,
     SseSerializer serializer,
   );
 
@@ -545,8 +654,26 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  void sse_encode_box_autoadd_i_64(
+    PlatformInt64 self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_box_autoadd_platform_info(
+    PlatformInfo self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_box_autoadd_pull_strategy(
     PullStrategy self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_box_autoadd_release_asset(
+    ReleaseAsset self,
     SseSerializer serializer,
   );
 
@@ -558,6 +685,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   void sse_encode_box_autoadd_u_32(int self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_box_autoadd_update_info(
+    UpdateInfo self,
+    SseSerializer serializer,
+  );
 
   @protected
   void sse_encode_branch_info(BranchInfo self, SseSerializer serializer);
@@ -590,7 +723,19 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   void sse_encode_diff_line(DiffLine self, SseSerializer serializer);
 
   @protected
+  void sse_encode_download_progress(
+    DownloadProgress self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_fetch_result(FetchResult self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_fetch_schedule(FetchSchedule self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_fetch_unit(FetchUnit self, SseSerializer serializer);
 
   @protected
   void sse_encode_file_change(FileChange self, SseSerializer serializer);
@@ -713,13 +858,37 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  void sse_encode_opt_box_autoadd_i_64(
+    PlatformInt64? self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_opt_box_autoadd_pull_strategy(
     PullStrategy? self,
     SseSerializer serializer,
   );
 
   @protected
+  void sse_encode_opt_box_autoadd_release_asset(
+    ReleaseAsset? self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_opt_box_autoadd_u_32(int? self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_opt_box_autoadd_update_info(
+    UpdateInfo? self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_package_kind(PackageKind self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_platform_info(PlatformInfo self, SseSerializer serializer);
 
   @protected
   void sse_encode_pull_outcome(PullOutcome self, SseSerializer serializer);
@@ -735,6 +904,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   void sse_encode_registry(Registry self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_release_asset(ReleaseAsset self, SseSerializer serializer);
 
   @protected
   void sse_encode_repo_entry(RepoEntry self, SseSerializer serializer);
@@ -765,6 +937,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   void sse_encode_unit(void self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_update_info(UpdateInfo self, SseSerializer serializer);
 
   @protected
   void sse_encode_workflow_run(WorkflowRun self, SseSerializer serializer);

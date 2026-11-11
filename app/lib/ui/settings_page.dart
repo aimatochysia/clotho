@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../core/git_service.dart';
 import '../state/app_controller.dart';
+import 'update_ui.dart';
 import 'widgets/feedback.dart';
 
 String pullStrategyLabel(PullStrategy s) => switch (s) {
@@ -19,9 +21,14 @@ String pullStrategyHelp(PullStrategy s) => switch (s) {
     'Replays your commits on top of the remote ones for a straight history.',
 };
 
-const autoFetchChoices = [0, 1, 5, 15, 30, 60];
-
-String autoFetchLabel(int m) => m == 0 ? 'Off' : 'Every $m min';
+String fetchUnitLabel(FetchUnit u, int every) {
+  final word = switch (u) {
+    FetchUnit.minutes => 'minute',
+    FetchUnit.hours => 'hour',
+    FetchUnit.days => 'day',
+  };
+  return every == 1 ? word : '${word}s';
+}
 
 class SettingsPage extends StatelessWidget {
   const SettingsPage({super.key, required this.app});
@@ -40,27 +47,6 @@ class SettingsPage extends StatelessWidget {
           return ListView(
             children: [
               const _Header('Sync'),
-              ListTile(
-                leading: const Icon(Icons.sync),
-                title: const Text('Auto fetch'),
-                subtitle: const Text(
-                  'Checks remotes in the background so ahead/behind counts stay current.',
-                ),
-                trailing: DropdownButton<int>(
-                  key: const Key('auto-fetch'),
-                  value: autoFetchChoices.contains(s.autoFetchMinutes)
-                      ? s.autoFetchMinutes
-                      : 5,
-                  items: [
-                    for (final m in autoFetchChoices)
-                      DropdownMenuItem(
-                        value: m,
-                        child: Text(autoFetchLabel(m)),
-                      ),
-                  ],
-                  onChanged: (m) => save(s.copyWith(autoFetchMinutes: m)),
-                ),
-              ),
               ListTile(
                 leading: const Icon(Icons.download),
                 title: const Text('Pull strategy'),
@@ -113,10 +99,12 @@ class SettingsPage extends StatelessWidget {
                 value: s.checkUpdates,
                 onChanged: (v) => save(s.copyWith(checkUpdates: v)),
               ),
+              const UpdateTile(),
               const Padding(
                 padding: EdgeInsets.all(16),
                 child: Text(
-                  'Each repository can override pull and push settings from its ⋮ menu.',
+                  'Each repository has its own auto fetch schedule and can '
+                  'override pull and push settings from its ⋮ menu.',
                 ),
               ),
             ],
@@ -143,7 +131,7 @@ class _Header extends StatelessWidget {
 }
 
 /// Per-repository overrides: display name, pull strategy, push after commit,
-/// and whether it takes part in auto fetch.
+/// and its auto fetch schedule.
 Future<void> showRepoSettings(
   BuildContext context,
   AppController app,
@@ -151,21 +139,67 @@ Future<void> showRepoSettings(
 ) async {
   final result = await showDialog<RepoEntry>(
     context: context,
-    builder: (_) => _RepoSettingsDialog(entry: entry, defaults: app.settings),
+    builder: (_) => _RepoSettingsDialog(
+      entry: entry,
+      defaults: app.settings,
+      backgroundSupported: app.background.supported,
+    ),
   );
-  if (result != null && context.mounted) {
-    await guarded(
-      context,
-      () => app.updateRepo(result),
-      success: (_) => 'Saved',
-    );
-  }
+  if (result == null || !context.mounted) return;
+  final turnedOn = result.fetchSchedule.enabled && !entry.fetchSchedule.enabled;
+  if (turnedOn) await askAutoFetchPermissions(context, app);
+  if (!context.mounted) return;
+  await guarded(context, () => app.updateRepo(result), success: (_) => 'Saved');
+}
+
+/// Explains, then asks for, what auto fetch needs: notifications for new
+/// commits and, on Android, permission to run in the background.
+Future<void> askAutoFetchPermissions(
+  BuildContext context,
+  AppController app,
+) async {
+  final bg = app.background;
+  final needBackground = bg.supported && !await bg.allowed();
+  if (!context.mounted) return;
+  final go = await showDialog<bool>(
+    context: context,
+    builder: (context) => AlertDialog(
+      icon: const Icon(Icons.notifications_active_outlined),
+      title: const Text('Stay up to date'),
+      content: Text(
+        needBackground
+            ? 'Clotho can tell you when new commits arrive. To fetch while the '
+                  'app is closed, Android needs to let Clotho run in the '
+                  'background (battery optimisation off). Fetching uses very '
+                  'little battery.'
+            : 'Clotho can tell you when an automatic fetch finds new commits.',
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context, false),
+          child: const Text('Not now'),
+        ),
+        FilledButton(
+          onPressed: () => Navigator.pop(context, true),
+          child: const Text('Allow'),
+        ),
+      ],
+    ),
+  );
+  if (go != true) return;
+  await app.notifier.requestPermission();
+  if (needBackground) await bg.requestAllowed();
 }
 
 class _RepoSettingsDialog extends StatefulWidget {
-  const _RepoSettingsDialog({required this.entry, required this.defaults});
+  const _RepoSettingsDialog({
+    required this.entry,
+    required this.defaults,
+    required this.backgroundSupported,
+  });
   final RepoEntry entry;
   final AppSettings defaults;
+  final bool backgroundSupported;
 
   @override
   State<_RepoSettingsDialog> createState() => _RepoSettingsDialogState();
@@ -175,12 +209,26 @@ class _RepoSettingsDialogState extends State<_RepoSettingsDialog> {
   late final _name = TextEditingController(text: widget.entry.name);
   late PullStrategy? _pull = widget.entry.pullStrategy;
   late bool? _push = widget.entry.pushAfterCommit;
-  late bool _autoFetch = widget.entry.autoFetch;
+  late bool _autoFetch = widget.entry.fetchSchedule.enabled;
+  late FetchUnit _unit = widget.entry.fetchSchedule.unit;
+  late final _every = TextEditingController(
+    text: '${widget.entry.fetchSchedule.every}',
+  );
+
+  int get _everyValue => (int.tryParse(_every.text) ?? 1).clamp(1, 999);
+
+  @override
+  void dispose() {
+    _name.dispose();
+    _every.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     final d = widget.defaults;
     return AlertDialog(
+      scrollable: true,
       title: const Text('Repository settings'),
       content: SizedBox(
         width: 440,
@@ -193,6 +241,7 @@ class _RepoSettingsDialogState extends State<_RepoSettingsDialog> {
             ),
             const SizedBox(height: 16),
             DropdownButtonFormField<PullStrategy?>(
+              isExpanded: true,
               initialValue: _pull,
               decoration: const InputDecoration(labelText: 'Pull strategy'),
               items: [
@@ -207,6 +256,7 @@ class _RepoSettingsDialogState extends State<_RepoSettingsDialog> {
             ),
             const SizedBox(height: 16),
             DropdownButtonFormField<bool?>(
+              isExpanded: true,
               initialValue: _push,
               decoration: const InputDecoration(labelText: 'After commit'),
               items: [
@@ -227,12 +277,70 @@ class _RepoSettingsDialogState extends State<_RepoSettingsDialog> {
               ],
               onChanged: (v) => setState(() => _push = v),
             ),
+            const SizedBox(height: 8),
             SwitchListTile(
+              key: const Key('auto-fetch'),
               contentPadding: EdgeInsets.zero,
-              title: const Text('Include in auto fetch'),
+              title: const Text('Auto fetch'),
+              subtitle: Text(
+                _autoFetch
+                    ? 'Fetches on a schedule and notifies you of new commits.'
+                    : 'Off. Fetch by hand from the repository page.',
+              ),
               value: _autoFetch,
               onChanged: (v) => setState(() => _autoFetch = v),
             ),
+            if (_autoFetch) ...[
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Padding(
+                    padding: EdgeInsets.only(top: 16, right: 12),
+                    child: Text('Every'),
+                  ),
+                  SizedBox(
+                    width: 88,
+                    child: TextField(
+                      key: const Key('auto-fetch-every'),
+                      controller: _every,
+                      keyboardType: TextInputType.number,
+                      inputFormatters: [
+                        FilteringTextInputFormatter.digitsOnly,
+                        LengthLimitingTextInputFormatter(3),
+                      ],
+                      onChanged: (_) => setState(() {}),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: DropdownButtonFormField<FetchUnit>(
+                      isExpanded: true,
+                      key: const Key('auto-fetch-unit'),
+                      initialValue: _unit,
+                      items: [
+                        for (final u in FetchUnit.values)
+                          DropdownMenuItem(
+                            value: u,
+                            child: Text(fetchUnitLabel(u, _everyValue)),
+                          ),
+                      ],
+                      onChanged: (u) => setState(() => _unit = u ?? _unit),
+                    ),
+                  ),
+                ],
+              ),
+              if (widget.backgroundSupported &&
+                  _unit == FetchUnit.minutes &&
+                  _everyValue < 15)
+                Padding(
+                  padding: const EdgeInsets.only(top: 8),
+                  child: Text(
+                    'While Clotho is closed, Android runs background work at '
+                    'most every 15 minutes.',
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                ),
+            ],
           ],
         ),
       ),
@@ -251,7 +359,12 @@ class _RepoSettingsDialogState extends State<_RepoSettingsDialog> {
                   : _name.text.trim(),
               pullStrategy: _pull,
               pushAfterCommit: _push,
-              autoFetch: _autoFetch,
+              fetchSchedule: FetchSchedule(
+                enabled: _autoFetch,
+                every: _everyValue,
+                unit: _unit,
+              ),
+              lastAutoFetch: widget.entry.lastAutoFetch,
             ),
           ),
           child: const Text('Save'),

@@ -1,0 +1,34 @@
+# git-cliff config: release notes from Conventional Commits.
+[changelog]
+header = ""
+body = """
+{% for group, commits in commits | group_by(attribute="group") %}
+### {{ group | striptags | trim | upper_first }}
+{% for commit in commits %}
+- {% if commit.scope %}**{{ commit.scope }}:** {% endif %}{{ commit.message | split(pat="\n") | first | upper_first }}\
+{% if commit.breaking %} (**breaking**){% endif %}\
+{% endfor %}
+{% endfor %}
+"""
+trim = true
+footer = ""
+
+[git]
+conventional_commits = true
+filter_unconventional = true
+split_commits = false
+protect_breaking_commits = true
+filter_commits = false
+tag_pattern = "v[0-9]*"
+sort_commits = "oldest"
+commit_parsers = [
+  { message = "^feat", group = "<!-- 0 -->Features" },
+  { message = "^fix", group = "<!-- 1 -->Bug fixes" },
+  { message = "^perf", group = "<!-- 2 -->Performance" },
+  { message = "^sec", group = "<!-- 3 -->Security" },
+  { message = "^refactor", group = "<!-- 4 -->Refactoring" },
+  { message = "^doc", group = "<!-- 5 -->Documentation" },
+  { message = "^chore\\(release\\)", skip = true },
+  { message = "^chore: merge", skip = true },
+  { message = "^(chore|ci|build|test|style)", group = "<!-- 6 -->Maintenance" },
+]

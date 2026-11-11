@@ -8,8 +8,9 @@ import 'package:flutter/services.dart';
 import '../state/app_controller.dart';
 import 'widgets/feedback.dart';
 
-/// Asks for a folder: the system picker on desktop, a typed path on Android
-/// (the Android picker returns content URIs that Git cannot open).
+/// Asks for a folder with the system folder picker. On Android the native
+/// picker's answer is turned into a real path, since Git cannot open the
+/// content:// URIs it normally returns.
 Future<String?> pickFolder(
   BuildContext context, {
   required String title,
@@ -17,13 +18,18 @@ Future<String?> pickFolder(
   if (Platform.isAndroid) {
     final granted = await _ensureAndroidStorage(context);
     if (!granted || !context.mounted) return null;
-    return promptText(
-      context,
-      title: title,
-      label: 'Folder path',
-      hint: '/storage/emulated/0/projects',
-      action: 'Choose',
-    );
+    try {
+      return await _storage.invokeMethod<String>('pickDirectory');
+    } on PlatformException catch (e) {
+      if (context.mounted) {
+        showMessage(
+          context,
+          e.message ?? 'Could not open that folder',
+          error: true,
+        );
+      }
+      return null;
+    }
   }
   return getDirectoryPath(confirmButtonText: 'Choose');
 }
@@ -62,22 +68,37 @@ Future<bool> _ensureAndroidStorage(BuildContext context) async {
 Future<void> addRepository(BuildContext context, AppController app) async {
   final path = await pickFolder(context, title: 'Add repository');
   if (path == null || path.isEmpty || !context.mounted) return;
-  await guarded(context, () async {
-    final report = await app.addRepos([path]);
-    if (report.added.isEmpty && context.mounted) {
-      final reason = report.skipped.isNotEmpty
-          ? report.skipped.first.reason
-          : 'unknown reason';
-      showMessage(context, 'Not added: $reason', error: true);
-    }
-  });
+  final report = await guarded(context, () => app.addRepos([path]));
+  if (report == null || report.added.isNotEmpty || !context.mounted) return;
+  final notRepo = !Directory('$path${Platform.pathSeparator}.git').existsSync();
+  if (notRepo) {
+    // A folder without .git: offer to look for repositories inside it.
+    final scan = await confirm(
+      context,
+      title: 'Not a Git repository',
+      message:
+          '$path has no .git folder. Scan it for repositories inside instead?',
+      action: 'Scan folder',
+    );
+    if (scan && context.mounted) await scanFolder(context, app, root: path);
+    return;
+  }
+  final reason = report.skipped.isNotEmpty
+      ? report.skipped.first.reason
+      : 'unknown reason';
+  showMessage(context, 'Not added: $reason', error: true);
 }
 
 /// Scans a folder for repositories and lets the person pick which to add.
-Future<void> scanFolder(BuildContext context, AppController app) async {
-  final root = await pickFolder(context, title: 'Scan folder for repositories');
-  if (root == null || root.isEmpty || !context.mounted) return;
-  final found = await guarded(context, () => app.scan(root));
+Future<void> scanFolder(
+  BuildContext context,
+  AppController app, {
+  String? root,
+}) async {
+  final dir =
+      root ?? await pickFolder(context, title: 'Scan folder for repositories');
+  if (dir == null || dir.isEmpty || !context.mounted) return;
+  final found = await guarded(context, () => app.scan(dir));
   if (found == null || !context.mounted) return;
   final known = {for (final r in app.repos) r.entry.path};
   final candidates = found.where((p) => !known.contains(p)).toList();
@@ -85,14 +106,14 @@ Future<void> scanFolder(BuildContext context, AppController app) async {
     showMessage(
       context,
       found.isEmpty
-          ? 'No repositories found in $root'
+          ? 'No repositories found in $dir'
           : 'All repositories there are already added',
     );
     return;
   }
   final chosen = await showDialog<List<String>>(
     context: context,
-    builder: (ctx) => _ScanResultDialog(root: root, paths: candidates),
+    builder: (ctx) => _ScanResultDialog(root: dir, paths: candidates),
   );
   if (chosen == null || chosen.isEmpty || !context.mounted) return;
   await guarded(

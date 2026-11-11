@@ -1,6 +1,7 @@
 import 'package:clotho/app.dart';
 import 'package:clotho/core/git_service.dart';
 import 'package:clotho/state/app_controller.dart';
+import 'package:clotho/state/update_controller.dart';
 import 'package:clotho/core/github_service.dart';
 import 'package:clotho/ui/github/repos_page.dart';
 import 'package:clotho/ui/repo_page.dart';
@@ -9,8 +10,13 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'fake_git.dart';
 import 'fake_github.dart';
+import 'fake_update.dart';
 
-const repo = RepoEntry(path: '/repos/demo', name: 'demo', autoFetch: true);
+const repo = RepoEntry(
+  path: '/repos/demo',
+  name: 'demo',
+  fetchSchedule: fetchScheduleOff,
+);
 
 Future<AppController> boot(FakeGitService git) async {
   final app = AppController(git);
@@ -127,7 +133,6 @@ void main() {
     final git = FakeGitService(
       repos: [repo],
       settings: const AppSettings(
-        autoFetchMinutes: 0,
         pullStrategy: PullStrategy.merge,
         pushAfterCommit: true,
         scanDepth: 3,
@@ -280,6 +285,77 @@ void main() {
     await tester.enterText(find.byKey(const Key('gh-filter')), 'alp');
     await tester.pumpAndSettle();
     expect(find.text('octo/old'), findsNothing);
+    app.dispose();
+  });
+
+  testWidgets('update banner opens the dialog and verifies the download', (
+    tester,
+  ) async {
+    final svc = FakeUpdateService()..next = updateInfo();
+    final updates = UpdateController(service: svc, currentVersion: '0.1.0');
+    await updates.check();
+    final git = FakeGitService(repos: [repo])
+      ..statuses[repo.path] = statusWith();
+    final app = await boot(git);
+    final gh = FakeGitHubService();
+    await tester.binding.setSurfaceSize(const Size(1200, 900));
+    await tester.pumpWidget(
+      ClothoApp(app: app, auth: fakeAuth(gh), github: gh, updates: updates),
+    );
+    await tester.pumpAndSettle();
+    expect(find.textContaining('Clotho 0.2.0 is available'), findsOneWidget);
+    await tester.tap(find.byKey(const Key('update-view')));
+    await tester.pumpAndSettle();
+    expect(find.textContaining('shiny'), findsOneWidget);
+    await tester.tap(find.byKey(const Key('update-download')));
+    await tester.pumpAndSettle();
+    expect(
+      find.textContaining('Signature and SHA-256 verified'),
+      findsOneWidget,
+    );
+    expect(
+      find.text('sudo apt install "/tmp/clotho-0.2.0-linux-amd64.deb"'),
+      findsOneWidget,
+    );
+    app.dispose();
+  });
+
+  testWidgets('repository settings turn on a whole-number fetch schedule', (
+    tester,
+  ) async {
+    final git = FakeGitService(repos: [repo]);
+    final app = await boot(git);
+    await tester.binding.setSurfaceSize(const Size(1200, 900));
+    await tester.pumpWidget(app.wrap());
+    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip('Actions'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Repository settings').last);
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('auto-fetch-every')), findsNothing);
+    await tester.tap(find.byKey(const Key('auto-fetch')));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byKey(const Key('auto-fetch-every')), '1.5');
+    await tester.pump();
+    expect(find.text('15'), findsOneWidget, reason: 'digits only');
+    await tester.enterText(find.byKey(const Key('auto-fetch-every')), '30');
+    await tester.tap(find.byKey(const Key('auto-fetch-unit')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('minutes').last);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+
+    // Turning it on explains notifications first.
+    expect(find.text('Stay up to date'), findsOneWidget);
+    await tester.tap(find.text('Not now'));
+    await tester.pumpAndSettle();
+
+    final saved = git.registry.repos.single.fetchSchedule;
+    expect(saved.enabled, isTrue);
+    expect(saved.every, 30);
+    expect(saved.unit, FetchUnit.minutes);
     app.dispose();
   });
 }

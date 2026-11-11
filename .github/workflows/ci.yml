@@ -21,6 +21,7 @@ jobs:
   rust:
     name: Rust core
     runs-on: ubuntu-latest
+    timeout-minutes: 60
     defaults:
       run:
         working-directory: app/rust
@@ -37,13 +38,15 @@ jobs:
   flutter:
     name: Flutter (Linux) + integration test
     runs-on: ubuntu-latest
+    timeout-minutes: 60
     defaults:
       run:
         working-directory: app
     steps:
       - uses: actions/checkout@v4
       - name: Install Linux build dependencies
-        run: sudo apt-get update && sudo apt-get install -y libgtk-3-dev libsecret-1-dev ninja-build xvfb
+        timeout-minutes: 8
+        run: sudo apt-get -o Acquire::Retries=2 -o Acquire::http::Timeout=20 update && sudo apt-get -o Acquire::Retries=2 -o Acquire::http::Timeout=20 install -y libgtk-3-dev libsecret-1-dev ninja-build xvfb
       - uses: subosito/flutter-action@v2
         with:
           flutter-version: ${{ env.FLUTTER_VERSION }}
@@ -64,6 +67,7 @@ jobs:
   build:
     name: Build ${{ matrix.target }}
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 60
     strategy:
       fail-fast: false
       matrix:

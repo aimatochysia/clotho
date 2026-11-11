@@ -35,6 +35,8 @@ String describeError(Object error) {
               'Sign in to see private repositories.',
         _ => 'GitHub: ${_capitalize(message)}',
       },
+      CoreError_Integrity(:final message) =>
+        'Update rejected: $message. Nothing was installed.',
       CoreError_InvalidInput(:final message) => _capitalize(message),
       CoreError_Io(:final message) => _capitalize(message),
       CoreError_Git(:final message) => 'Git error: $message',

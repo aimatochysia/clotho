@@ -10,7 +10,7 @@ import '../src/rust/api/branches.dart' show BranchInfo;
 import '../src/rust/api/changes.dart' show CommitResult, FileDiff;
 import '../src/rust/api/history.dart' show CommitInfo;
 import '../src/rust/api/registry.dart'
-    show AddReport, AppSettings, Registry, RepoEntry;
+    show AddReport, AppSettings, FetchSchedule, FetchUnit, Registry, RepoEntry;
 import '../src/rust/api/remote.dart'
     show AuthOptions, FetchResult, PullResult, PullStrategy, PushResult;
 import '../src/rust/api/repo.dart' show RepoStatus;
@@ -20,7 +20,14 @@ export '../src/rust/api/changes.dart'
     show CommitResult, DiffHunk, DiffLine, FileDiff, LineKind;
 export '../src/rust/api/history.dart' show CommitInfo;
 export '../src/rust/api/registry.dart'
-    show AddReport, AppSettings, Registry, RepoEntry, SkippedPath;
+    show
+        AddReport,
+        AppSettings,
+        FetchSchedule,
+        FetchUnit,
+        Registry,
+        RepoEntry,
+        SkippedPath;
 export '../src/rust/api/remote.dart'
     show
         AuthOptions,
@@ -34,19 +41,52 @@ export '../src/rust/api/repo.dart'
 
 extension AppSettingsCopy on AppSettings {
   AppSettings copyWith({
-    int? autoFetchMinutes,
     PullStrategy? pullStrategy,
     bool? pushAfterCommit,
     int? scanDepth,
     bool? checkUpdates,
     String? cloneDir,
   }) => AppSettings(
-    autoFetchMinutes: autoFetchMinutes ?? this.autoFetchMinutes,
     pullStrategy: pullStrategy ?? this.pullStrategy,
     pushAfterCommit: pushAfterCommit ?? this.pushAfterCommit,
     scanDepth: scanDepth ?? this.scanDepth,
     checkUpdates: checkUpdates ?? this.checkUpdates,
     cloneDir: cloneDir ?? this.cloneDir,
+  );
+}
+
+const fetchScheduleOff = FetchSchedule(
+  enabled: false,
+  every: 1,
+  unit: FetchUnit.hours,
+);
+
+extension FetchScheduleTime on FetchSchedule {
+  Duration get interval => switch (unit) {
+    FetchUnit.minutes => Duration(minutes: every),
+    FetchUnit.hours => Duration(hours: every),
+    FetchUnit.days => Duration(days: every),
+  };
+
+  /// "every 2 hours", "every minute".
+  String get label {
+    final word = switch (unit) {
+      FetchUnit.minutes => 'minute',
+      FetchUnit.hours => 'hour',
+      FetchUnit.days => 'day',
+    };
+    return every == 1 ? 'every $word' : 'every $every ${word}s';
+  }
+}
+
+extension RepoEntryCopy on RepoEntry {
+  RepoEntry copyWith({String? name, FetchSchedule? fetchSchedule}) => RepoEntry(
+    path: path,
+    name: name ?? this.name,
+    pullStrategy: pullStrategy,
+    pushAfterCommit: pushAfterCommit,
+    fetchSchedule: fetchSchedule ?? this.fetchSchedule,
+    lastAutoFetch: lastAutoFetch,
   );
 }
 
@@ -59,6 +99,10 @@ abstract interface class GitService {
   Future<Registry> updateRepo(RepoEntry entry);
   Future<Registry> updateSettings(AppSettings settings);
   Future<List<String>> scanForRepos(String root, int maxDepth);
+
+  /// Repositories whose automatic fetch is due at [now].
+  Future<List<String>> dueForFetch(DateTime now);
+  Future<void> markAutoFetched(String path, DateTime at);
 
   Future<RepoStatus> status(String path);
   Future<FileDiff> diffFile(String path, String file, {required bool staged});
@@ -130,6 +174,18 @@ class RustGitService implements GitService {
   @override
   Future<List<String>> scanForRepos(String root, int maxDepth) =>
       rp.scanForRepos(root: root, maxDepth: maxDepth);
+
+  @override
+  Future<List<String>> dueForFetch(DateTime now) => rr.dueForFetch(
+    configDir: configDir,
+    nowSeconds: now.millisecondsSinceEpoch ~/ 1000,
+  );
+  @override
+  Future<void> markAutoFetched(String path, DateTime at) => rr.markAutoFetched(
+    configDir: configDir,
+    path: path,
+    atSeconds: at.millisecondsSinceEpoch ~/ 1000,
+  );
 
   @override
   Future<RepoStatus> status(String path) => rp.repoStatus(path: path);

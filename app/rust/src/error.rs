@@ -32,6 +32,8 @@ pub enum CoreError {
     Network { message: String },
     #[error("GitHub returned {status}: {message}")]
     GitHub { status: u16, message: String },
+    #[error("update check failed: {message}")]
+    Integrity { message: String },
     #[error("{message}")]
     InvalidInput { message: String },
     #[error("file error: {message}")]

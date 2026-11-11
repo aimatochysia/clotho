@@ -1,0 +1,17 @@
+# Packages the prebuilt Clotho tree (packaging/linux/build-packages.sh
+# output) for Arch Linux. The release workflow sets pkgver and copies the
+# staged tree next to this file as pkgroot/.
+pkgname=clotho
+pkgver=0.0.0
+pkgrel=1
+pkgdesc="Manage Git and GitHub repositories anywhere on your disk"
+arch=('x86_64')
+url="https://github.com/aimatochysia/clotho"
+license=('custom')
+depends=('gtk3' 'libsecret' 'glibc')
+optdepends=('git: command-line Git alongside Clotho')
+options=('!strip' '!debug')
+
+package() {
+  cp -a "$startdir/pkgroot/." "$pkgdir/"
+}

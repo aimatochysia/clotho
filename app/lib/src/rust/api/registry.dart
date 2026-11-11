@@ -10,8 +10,9 @@ import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
 import 'remote.dart';
 
-// These functions are ignored because they are not marked as `pub`: `file_in`, `read`, `same_path`, `write`, `yes`
-// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `clone`, `clone`, `clone`, `clone`, `clone`, `eq`, `eq`, `eq`, `eq`, `eq`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`
+// These functions are ignored because they are not marked as `pub`: `clamped`, `file_in`, `read`, `same_path`, `write`
+// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`
+// These functions are ignored (category: IgnoreBecauseExplicitAttribute): `interval_seconds`, `off`
 
 /// Loads the repository list and settings from `config_dir` (empty on first run).
 Future<Registry> loadRegistry({required String configDir}) =>
@@ -53,6 +54,27 @@ Future<Registry> updateSettings({
   settings: settings,
 );
 
+/// Paths of the repositories whose automatic fetch is due at `now_seconds`
+/// (Unix time). A repository that was never fetched automatically is due.
+Future<List<String>> dueForFetch({
+  required String configDir,
+  required PlatformInt64 nowSeconds,
+}) => RustLib.instance.api.crateApiRegistryDueForFetch(
+  configDir: configDir,
+  nowSeconds: nowSeconds,
+);
+
+/// Records an automatic fetch of `path` at `at_seconds` (Unix time).
+Future<void> markAutoFetched({
+  required String configDir,
+  required String path,
+  required PlatformInt64 atSeconds,
+}) => RustLib.instance.api.crateApiRegistryMarkAutoFetched(
+  configDir: configDir,
+  path: path,
+  atSeconds: atSeconds,
+);
+
 class AddReport {
   final Registry registry;
   final List<String> added;
@@ -81,8 +103,6 @@ class AddReport {
 
 /// App-wide defaults. Each repository can override pull and push behaviour.
 class AppSettings {
-  /// Minutes between background fetches; 0 turns auto fetch off.
-  final int autoFetchMinutes;
   final PullStrategy pullStrategy;
 
   /// Push automatically after every successful commit.
@@ -98,7 +118,6 @@ class AppSettings {
   final String? cloneDir;
 
   const AppSettings({
-    required this.autoFetchMinutes,
     required this.pullStrategy,
     required this.pushAfterCommit,
     required this.scanDepth,
@@ -111,7 +130,6 @@ class AppSettings {
 
   @override
   int get hashCode =>
-      autoFetchMinutes.hashCode ^
       pullStrategy.hashCode ^
       pushAfterCommit.hashCode ^
       scanDepth.hashCode ^
@@ -123,13 +141,39 @@ class AppSettings {
       identical(this, other) ||
       other is AppSettings &&
           runtimeType == other.runtimeType &&
-          autoFetchMinutes == other.autoFetchMinutes &&
           pullStrategy == other.pullStrategy &&
           pushAfterCommit == other.pushAfterCommit &&
           scanDepth == other.scanDepth &&
           checkUpdates == other.checkUpdates &&
           cloneDir == other.cloneDir;
 }
+
+/// "Every `every` `unit`", for example every 2 hours.
+class FetchSchedule {
+  final bool enabled;
+  final int every;
+  final FetchUnit unit;
+
+  const FetchSchedule({
+    required this.enabled,
+    required this.every,
+    required this.unit,
+  });
+
+  @override
+  int get hashCode => enabled.hashCode ^ every.hashCode ^ unit.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is FetchSchedule &&
+          runtimeType == other.runtimeType &&
+          enabled == other.enabled &&
+          every == other.every &&
+          unit == other.unit;
+}
+
+enum FetchUnit { minutes, hours, days }
 
 class Registry {
   final AppSettings settings;
@@ -160,14 +204,21 @@ class RepoEntry {
 
   /// Overrides `AppSettings::push_after_commit` when set.
   final bool? pushAfterCommit;
-  final bool autoFetch;
+
+  /// When to fetch this repository automatically. Off unless turned on.
+  final FetchSchedule fetchSchedule;
+
+  /// Unix seconds of the last automatic fetch; kept by the core, so
+  /// whatever the app sends here in `update_repo` is ignored.
+  final PlatformInt64? lastAutoFetch;
 
   const RepoEntry({
     required this.path,
     required this.name,
     this.pullStrategy,
     this.pushAfterCommit,
-    required this.autoFetch,
+    required this.fetchSchedule,
+    this.lastAutoFetch,
   });
 
   @override
@@ -176,7 +227,8 @@ class RepoEntry {
       name.hashCode ^
       pullStrategy.hashCode ^
       pushAfterCommit.hashCode ^
-      autoFetch.hashCode;
+      fetchSchedule.hashCode ^
+      lastAutoFetch.hashCode;
 
   @override
   bool operator ==(Object other) =>
@@ -187,7 +239,8 @@ class RepoEntry {
           name == other.name &&
           pullStrategy == other.pullStrategy &&
           pushAfterCommit == other.pushAfterCommit &&
-          autoFetch == other.autoFetch;
+          fetchSchedule == other.fetchSchedule &&
+          lastAutoFetch == other.lastAutoFetch;
 }
 
 class SkippedPath {
