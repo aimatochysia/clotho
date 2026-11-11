@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../../core/format.dart';
@@ -54,37 +55,83 @@ class BinaryPreview extends StatefulWidget {
     required this.file,
     required this.load,
     required this.git,
+    this.revision,
   });
 
   final String file;
   final Future<FileVersions> Function() load;
   final GitService git;
 
+  /// Changes when the file may have changed (a fresh diff). The preview then
+  /// reloads quietly and only redraws if the bytes really differ.
+  final Object? revision;
+
   @override
   State<BinaryPreview> createState() => _BinaryPreviewState();
 }
 
+bool _sameSide(FileSide a, FileSide b) =>
+    a.exists == b.exists &&
+    a.size == b.size &&
+    (identical(a.data, b.data) || listEquals(a.data, b.data));
+
 class _BinaryPreviewState extends State<BinaryPreview> {
-  late Future<FileVersions> _versions = widget.load();
+  FileVersions? _data;
+  Object? _error;
+  int _generation = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
 
   @override
   void didUpdateWidget(BinaryPreview old) {
     super.didUpdateWidget(old);
     if (old.file != widget.file) {
-      _versions = widget.load();
+      setState(() {
+        _data = null;
+        _error = null;
+      });
+      _load();
+    } else if (old.revision != widget.revision) {
+      _load();
+    }
+  }
+
+  Future<void> _load() async {
+    final gen = ++_generation;
+    try {
+      final v = await widget.load();
+      if (!mounted || gen != _generation) return;
+      final old = _data;
+      // Same bytes as on screen: keep the current images, no redraw.
+      if (old != null &&
+          _sameSide(old.before, v.before) &&
+          _sameSide(old.after, v.after)) {
+        return;
+      }
+      setState(() {
+        _data = v;
+        _error = null;
+      });
+    } catch (e) {
+      if (!mounted || gen != _generation) return;
+      // Keep showing the last good preview if a reload fails.
+      if (_data == null) setState(() => _error = e);
     }
   }
 
   @override
   Widget build(BuildContext context) {
     final kind = previewKindFor(widget.file);
-    return FutureBuilder<FileVersions>(
-      future: _versions,
-      builder: (context, snap) {
-        if (snap.hasError) {
-          return _note(context, Icons.error_outline, '${snap.error}');
+    return Builder(
+      builder: (context) {
+        if (_error != null) {
+          return _note(context, Icons.error_outline, '$_error');
         }
-        final v = snap.data;
+        final v = _data;
         if (v == null) {
           return const Padding(
             padding: EdgeInsets.all(24),
@@ -148,6 +195,7 @@ class _BinaryPreviewState extends State<BinaryPreview> {
                   final panes = [
                     for (final (label, side) in sides)
                       _Pane(
+                        key: ValueKey(label),
                         label: label,
                         side: side,
                         kind: kind,
@@ -198,6 +246,7 @@ Widget _note(BuildContext context, IconData icon, String text) => Padding(
 
 class _Pane extends StatefulWidget {
   const _Pane({
+    super.key,
     required this.label,
     required this.side,
     required this.kind,
@@ -213,7 +262,15 @@ class _Pane extends StatefulWidget {
 }
 
 class _PaneState extends State<_Pane> {
-  late final Future<Uint8List?> _bytes = _decode();
+  late Future<Uint8List?> _bytes = _decode();
+
+  @override
+  void didUpdateWidget(_Pane old) {
+    super.didUpdateWidget(old);
+    if (!_sameSide(old.side, widget.side) || old.kind != widget.kind) {
+      _bytes = _decode();
+    }
+  }
 
   Future<Uint8List?> _decode() async {
     final data = widget.side.data;
@@ -255,7 +312,8 @@ class _PaneState extends State<_Pane> {
                       'Cannot preview this version.',
                     );
                   }
-                  if (snap.connectionState != ConnectionState.done) {
+                  if (snap.connectionState != ConnectionState.done &&
+                      !snap.hasData) {
                     return const Center(child: CircularProgressIndicator());
                   }
                   final b = snap.data;
