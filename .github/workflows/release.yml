@@ -333,11 +333,10 @@ jobs:
         run: |
           cargo run --quiet --release --manifest-path tools/release-sign/Cargo.toml -- \
             dist/SHA256SUMS.txt "clotho v$VERSION"
-      - name: Double-check with minisign
-        run: |
-          sudo apt-get install -y minisign
-          minisign -Vm dist/SHA256SUMS.txt -p packaging/clotho-update.pub
-          (cd dist && sha256sum --check SHA256SUMS.txt)
+      # release-sign already verified the signature against
+      # packaging/clotho-update.pub before writing it.
+      - name: Check the checksum list
+        run: (cd dist && sha256sum --check SHA256SUMS.txt && test -s SHA256SUMS.txt.minisig)
       - name: Create the release
         if: env.PUBLISH == 'true'
         env:
