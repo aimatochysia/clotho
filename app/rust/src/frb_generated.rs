@@ -39,7 +39,7 @@ flutter_rust_bridge::frb_generated_boilerplate!(
     default_rust_auto_opaque = RustAutoOpaqueMoi,
 );
 pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_VERSION: &str = "2.13.0";
-pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = 514289993;
+pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = 905860391;
 
 // Section: executor
 
@@ -402,6 +402,39 @@ fn wire__crate__api__preview__commit_file_versions_impl(
                         api_file,
                         api_old_path,
                     )?;
+                    std::result::Result::Ok(output_ok)
+                })())
+            }
+        },
+    )
+}
+fn wire__crate__api__app__configure_tls_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_normal::<flutter_rust_bridge::for_generated::SseCodec, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "configure_tls",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_cache_dir = <String>::sse_decode(&mut deserializer);
+            deserializer.end();
+            move |context| {
+                transform_result_sse::<_, crate::error::CoreError>((move || {
+                    let output_ok = crate::api::app::configure_tls(api_cache_dir)?;
                     std::result::Result::Ok(output_ok)
                 })())
             }
@@ -3191,55 +3224,56 @@ fn pde_ffi_dispatcher_primary_impl(
         10 => {
             wire__crate__api__preview__commit_file_versions_impl(port, ptr, rust_vec_len, data_len)
         }
-        12 => wire__crate__api__branches__create_branch_impl(port, ptr, rust_vec_len, data_len),
-        14 => wire__crate__api__branches__delete_branch_impl(port, ptr, rust_vec_len, data_len),
-        15 => wire__crate__api__changes__diff_file_impl(port, ptr, rust_vec_len, data_len),
-        16 => wire__crate__api__changes__discard_paths_impl(port, ptr, rust_vec_len, data_len),
-        17 => wire__crate__api__update__download_update_impl(port, ptr, rust_vec_len, data_len),
-        18 => wire__crate__api__registry__due_for_fetch_impl(port, ptr, rust_vec_len, data_len),
-        19 => wire__crate__api__remote__fetch_all_impl(port, ptr, rust_vec_len, data_len),
-        20 => wire__crate__api__identity__git_identity_impl(port, ptr, rust_vec_len, data_len),
-        21 => wire__crate__api__github__github_get_user_impl(port, ptr, rust_vec_len, data_len),
-        22 => wire__crate__api__github__github_list_issues_impl(port, ptr, rust_vec_len, data_len),
-        23 => wire__crate__api__github__github_list_pulls_impl(port, ptr, rust_vec_len, data_len),
-        24 => wire__crate__api__github__github_list_repos_impl(port, ptr, rust_vec_len, data_len),
-        25 => wire__crate__api__github__github_list_runs_impl(port, ptr, rust_vec_len, data_len),
-        26 => wire__crate__api__github__github_poll_device_flow_impl(
+        11 => wire__crate__api__app__configure_tls_impl(port, ptr, rust_vec_len, data_len),
+        13 => wire__crate__api__branches__create_branch_impl(port, ptr, rust_vec_len, data_len),
+        15 => wire__crate__api__branches__delete_branch_impl(port, ptr, rust_vec_len, data_len),
+        16 => wire__crate__api__changes__diff_file_impl(port, ptr, rust_vec_len, data_len),
+        17 => wire__crate__api__changes__discard_paths_impl(port, ptr, rust_vec_len, data_len),
+        18 => wire__crate__api__update__download_update_impl(port, ptr, rust_vec_len, data_len),
+        19 => wire__crate__api__registry__due_for_fetch_impl(port, ptr, rust_vec_len, data_len),
+        20 => wire__crate__api__remote__fetch_all_impl(port, ptr, rust_vec_len, data_len),
+        21 => wire__crate__api__identity__git_identity_impl(port, ptr, rust_vec_len, data_len),
+        22 => wire__crate__api__github__github_get_user_impl(port, ptr, rust_vec_len, data_len),
+        23 => wire__crate__api__github__github_list_issues_impl(port, ptr, rust_vec_len, data_len),
+        24 => wire__crate__api__github__github_list_pulls_impl(port, ptr, rust_vec_len, data_len),
+        25 => wire__crate__api__github__github_list_repos_impl(port, ptr, rust_vec_len, data_len),
+        26 => wire__crate__api__github__github_list_runs_impl(port, ptr, rust_vec_len, data_len),
+        27 => wire__crate__api__github__github_poll_device_flow_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        27 => wire__crate__api__github__github_remote_of_impl(port, ptr, rust_vec_len, data_len),
-        28 => wire__crate__api__github__github_start_device_flow_impl(
+        28 => wire__crate__api__github__github_remote_of_impl(port, ptr, rust_vec_len, data_len),
+        29 => wire__crate__api__github__github_start_device_flow_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        29 => wire__crate__api__app__init_app_impl(port, ptr, rust_vec_len, data_len),
-        30 => wire__crate__api__repo__inspect_repo_impl(port, ptr, rust_vec_len, data_len),
-        32 => wire__crate__api__branches__list_branches_impl(port, ptr, rust_vec_len, data_len),
-        33 => wire__crate__api__registry__load_registry_impl(port, ptr, rust_vec_len, data_len),
-        34 => wire__crate__api__history__log_page_impl(port, ptr, rust_vec_len, data_len),
-        35 => wire__crate__api__registry__mark_auto_fetched_impl(port, ptr, rust_vec_len, data_len),
-        36 => wire__crate__api__remote__pull_impl(port, ptr, rust_vec_len, data_len),
-        37 => wire__crate__api__remote__push_impl(port, ptr, rust_vec_len, data_len),
-        38 => wire__crate__api__registry__remove_repo_impl(port, ptr, rust_vec_len, data_len),
-        39 => wire__crate__api__branches__rename_branch_impl(port, ptr, rust_vec_len, data_len),
-        40 => wire__crate__api__preview__render_aseprite_impl(port, ptr, rust_vec_len, data_len),
-        41 => wire__crate__api__repo__repo_status_impl(port, ptr, rust_vec_len, data_len),
-        42 => wire__crate__api__repo__scan_for_repos_impl(port, ptr, rust_vec_len, data_len),
-        43 => wire__crate__api__update__sha256_file_impl(port, ptr, rust_vec_len, data_len),
-        44 => wire__crate__api__changes__stage_all_impl(port, ptr, rust_vec_len, data_len),
-        45 => wire__crate__api__changes__stage_paths_impl(port, ptr, rust_vec_len, data_len),
-        46 => wire__crate__api__changes__unstage_paths_impl(port, ptr, rust_vec_len, data_len),
-        47 => wire__crate__api__watch__unwatch_repo_impl(port, ptr, rust_vec_len, data_len),
-        48 => wire__crate__api__registry__update_repo_impl(port, ptr, rust_vec_len, data_len),
-        49 => wire__crate__api__registry__update_settings_impl(port, ptr, rust_vec_len, data_len),
-        50 => wire__crate__api__identity__validate_identity_impl(port, ptr, rust_vec_len, data_len),
-        51 => wire__crate__api__watch__watch_repo_impl(port, ptr, rust_vec_len, data_len),
-        52 => {
+        30 => wire__crate__api__app__init_app_impl(port, ptr, rust_vec_len, data_len),
+        31 => wire__crate__api__repo__inspect_repo_impl(port, ptr, rust_vec_len, data_len),
+        33 => wire__crate__api__branches__list_branches_impl(port, ptr, rust_vec_len, data_len),
+        34 => wire__crate__api__registry__load_registry_impl(port, ptr, rust_vec_len, data_len),
+        35 => wire__crate__api__history__log_page_impl(port, ptr, rust_vec_len, data_len),
+        36 => wire__crate__api__registry__mark_auto_fetched_impl(port, ptr, rust_vec_len, data_len),
+        37 => wire__crate__api__remote__pull_impl(port, ptr, rust_vec_len, data_len),
+        38 => wire__crate__api__remote__push_impl(port, ptr, rust_vec_len, data_len),
+        39 => wire__crate__api__registry__remove_repo_impl(port, ptr, rust_vec_len, data_len),
+        40 => wire__crate__api__branches__rename_branch_impl(port, ptr, rust_vec_len, data_len),
+        41 => wire__crate__api__preview__render_aseprite_impl(port, ptr, rust_vec_len, data_len),
+        42 => wire__crate__api__repo__repo_status_impl(port, ptr, rust_vec_len, data_len),
+        43 => wire__crate__api__repo__scan_for_repos_impl(port, ptr, rust_vec_len, data_len),
+        44 => wire__crate__api__update__sha256_file_impl(port, ptr, rust_vec_len, data_len),
+        45 => wire__crate__api__changes__stage_all_impl(port, ptr, rust_vec_len, data_len),
+        46 => wire__crate__api__changes__stage_paths_impl(port, ptr, rust_vec_len, data_len),
+        47 => wire__crate__api__changes__unstage_paths_impl(port, ptr, rust_vec_len, data_len),
+        48 => wire__crate__api__watch__unwatch_repo_impl(port, ptr, rust_vec_len, data_len),
+        49 => wire__crate__api__registry__update_repo_impl(port, ptr, rust_vec_len, data_len),
+        50 => wire__crate__api__registry__update_settings_impl(port, ptr, rust_vec_len, data_len),
+        51 => wire__crate__api__identity__validate_identity_impl(port, ptr, rust_vec_len, data_len),
+        52 => wire__crate__api__watch__watch_repo_impl(port, ptr, rust_vec_len, data_len),
+        53 => {
             wire__crate__api__preview__working_file_versions_impl(port, ptr, rust_vec_len, data_len)
         }
         _ => unreachable!(),
@@ -3254,9 +3288,9 @@ fn pde_ffi_dispatcher_sync_impl(
 ) -> flutter_rust_bridge::for_generated::WireSyncRust2DartSse {
     // Codec=Pde (Serialization + dispatch), see doc to use other codecs
     match func_id {
-        11 => wire__crate__api__app__core_version_impl(ptr, rust_vec_len, data_len),
-        13 => wire__crate__api__update__current_platform_impl(ptr, rust_vec_len, data_len),
-        31 => wire__crate__api__app__libgit2_version_impl(ptr, rust_vec_len, data_len),
+        12 => wire__crate__api__app__core_version_impl(ptr, rust_vec_len, data_len),
+        14 => wire__crate__api__update__current_platform_impl(ptr, rust_vec_len, data_len),
+        32 => wire__crate__api__app__libgit2_version_impl(ptr, rust_vec_len, data_len),
         _ => unreachable!(),
     }
 }

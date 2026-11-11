@@ -3,6 +3,7 @@
 
 // ignore_for_file: invalid_use_of_internal_member, unused_import, unnecessary_import
 
+import '../error.dart';
 import '../frb_generated.dart';
 
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
@@ -14,3 +15,11 @@ String coreVersion() => RustLib.instance.api.crateApiAppCoreVersion();
 
 /// Version of the statically linked libgit2.
 String libgit2Version() => RustLib.instance.api.crateApiAppLibgit2Version();
+
+/// Points libgit2's TLS at the system's trusted certificates. Needed on
+/// Android: the bundled OpenSSL looks for a Linux CA file that does not exist
+/// there, so every HTTPS push or fetch failed with "the SSL certificate is
+/// invalid". The certificates are gathered into `cache_dir/cacert.pem`.
+/// Elsewhere this does nothing (the OS or the usual Linux paths are used).
+Future<void> configureTls({required String cacheDir}) =>
+    RustLib.instance.api.crateApiAppConfigureTls(cacheDir: cacheDir);
