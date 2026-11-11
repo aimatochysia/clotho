@@ -1,0 +1,29 @@
+[package]
+name = "clotho_core"
+version = "0.1.0"
+edition = "2021"
+description = "Core Git, GitHub and update logic for the Clotho app"
+license = "MIT"
+publish = false
+
+[lib]
+crate-type = ["cdylib", "staticlib", "rlib"]
+
+[dependencies]
+flutter_rust_bridge = "=2.13.0"
+thiserror = "2"
+# libgit2 is built from source and statically linked, so users never need git installed.
+# HTTPS uses the OS TLS stack on Windows/macOS and vendored OpenSSL on Linux/Android.
+git2 = { version = "0.20", default-features = false, features = ["https", "vendored-libgit2", "vendored-openssl"] }
+
+[dev-dependencies]
+tempfile = "3"
+
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1
+strip = true
+
+[lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = ['cfg(frb_expand)'] }
