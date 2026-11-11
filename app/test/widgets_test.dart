@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:clotho/app.dart';
 import 'package:clotho/core/git_service.dart';
 import 'package:clotho/state/app_controller.dart';
@@ -7,6 +9,7 @@ import 'package:clotho/ui/github/repos_page.dart';
 import 'package:clotho/ui/repo_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:clotho/ui/widgets/binary_preview.dart';
 
 import 'fake_git.dart';
 import 'fake_github.dart';
@@ -106,7 +109,10 @@ void main() {
 
     await tester.tap(find.byKey(const Key('commit-button')));
     await tester.pumpAndSettle();
-    expect(git.calls, contains('commit "fix: thing" stageAll=true'));
+    expect(
+      git.calls,
+      contains('commit "fix: thing" stageAll=true as config@example.com'),
+    );
     expect(git.calls, isNot(contains('push')));
     expect(find.textContaining('Committed deadbee'), findsOneWidget);
     app.dispose();
@@ -137,6 +143,8 @@ void main() {
         pushAfterCommit: true,
         scanDepth: 3,
         checkUpdates: false,
+        identities: [],
+        defaultIdentity: 0,
       ),
     )..statuses[repo.path] = statusWith(files: [stagedFile]);
     final app = await boot(git);
@@ -357,5 +365,145 @@ void main() {
     expect(saved.every, 30);
     expect(saved.unit, FetchUnit.minutes);
     app.dispose();
+  });
+
+  testWidgets('first commit without an identity asks for one and retries', (
+    tester,
+  ) async {
+    // The commit button spins while the dialog is open, so pump a fixed time.
+    Future<void> settle(WidgetTester t) async {
+      for (var i = 0; i < 10; i++) {
+        await t.pump(const Duration(milliseconds: 100));
+      }
+    }
+
+    final git = FakeGitService(repos: [repo])
+      ..configIdentity = null
+      ..statuses[repo.path] = statusWith(files: [stagedFile]);
+    final app = await boot(git);
+    await openRepo(tester, app);
+    await tester.enterText(find.byKey(const Key('commit-message')), 'feat: a');
+    await tester.pump();
+    await tester.tap(find.byKey(const Key('commit-button')));
+    await settle(tester);
+
+    expect(find.text('Who is committing?'), findsOneWidget);
+    await tester.enterText(find.byKey(const Key('identity-name')), 'Hael');
+    await tester.enterText(find.byKey(const Key('identity-email')), 'nope');
+    await tester.tap(find.text('Save'));
+    await settle(tester);
+    expect(find.text('Enter an email address'), findsOneWidget);
+    await tester.enterText(
+      find.byKey(const Key('identity-email')),
+      'hael@example.com',
+    );
+    await tester.tap(find.text('Save'));
+    await settle(tester);
+
+    expect(
+      git.calls,
+      contains('commit "feat: a" stageAll=false as hael@example.com'),
+    );
+    expect(app.settings.identities.single.name, 'Hael');
+    app.dispose();
+  });
+
+  testWidgets('binary images get a before and after preview', (tester) async {
+    // 1x1 transparent PNG.
+    final png = Uint8List.fromList(const [
+      0x89,
+      0x50,
+      0x4E,
+      0x47,
+      0x0D,
+      0x0A,
+      0x1A,
+      0x0A,
+      0x00,
+      0x00,
+      0x00,
+      0x0D,
+      0x49,
+      0x48,
+      0x44,
+      0x52,
+      0x00,
+      0x00,
+      0x00,
+      0x01,
+      0x00,
+      0x00,
+      0x00,
+      0x01,
+      0x08,
+      0x06,
+      0x00,
+      0x00,
+      0x00,
+      0x1F,
+      0x15,
+      0xC4,
+      0x89,
+      0x00,
+      0x00,
+      0x00,
+      0x0D,
+      0x49,
+      0x44,
+      0x41,
+      0x54,
+      0x78,
+      0x9C,
+      0x63,
+      0x00,
+      0x01,
+      0x00,
+      0x00,
+      0x05,
+      0x00,
+      0x01,
+      0x0D,
+      0x0A,
+      0x2D,
+      0xB4,
+      0x00,
+      0x00,
+      0x00,
+      0x00,
+      0x49,
+      0x45,
+      0x4E,
+      0x44,
+      0xAE,
+      0x42,
+      0x60,
+      0x82,
+    ]);
+    const sprite = FileChange(
+      path: 'art/hero.png',
+      unstaged: ChangeKind.modified,
+      conflicted: false,
+    );
+    final git = FakeGitService(repos: [repo])
+      ..statuses[repo.path] = statusWith(files: [sprite])
+      ..binaryFiles.add('art/hero.png')
+      ..oldBytes = png
+      ..newBytes = png;
+    final app = await boot(git);
+    await openRepo(tester, app);
+    await tester.tap(find.byKey(const Key('file-u-art/hero.png')));
+    await tester.pumpAndSettle();
+    expect(find.text('Before'), findsOneWidget);
+    expect(find.text('After'), findsOneWidget);
+    expect(find.byType(Image), findsNWidgets(2));
+    app.dispose();
+  });
+
+  test('preview kind comes from the extension', () {
+    expect(previewKindFor('a/B.PNG'), PreviewKind.image);
+    expect(previewKindFor('hero.aseprite'), PreviewKind.aseprite);
+    expect(previewKindFor('song.mp3'), PreviewKind.none);
+    expect(describeBinary('song.mp3'), 'Audio');
+    expect(describeBinary('thing.xyz'), '.xyz file');
   });
 }

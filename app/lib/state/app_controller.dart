@@ -81,6 +81,42 @@ class AppController extends ChangeNotifier {
   PullStrategy pullStrategyFor(String path) =>
       entryFor(path)?.pullStrategy ?? settings.pullStrategy;
 
+  /// Who to commit as in [path]; null leaves it to Git's own config.
+  Identity? identityFor(String path) {
+    final ids = settings.identities;
+    if (ids.isEmpty) return null;
+    final wanted = entryFor(path)?.identityEmail;
+    if (wanted != null) {
+      for (final id in ids) {
+        if (id.email.toLowerCase() == wanted.toLowerCase()) return id;
+      }
+    }
+    return ids[settings.defaultIdentity.clamp(0, ids.length - 1)];
+  }
+
+  /// Adds [id] (or updates the one with the same email) and, when
+  /// [makeDefault], uses it from now on.
+  Future<void> saveIdentity(Identity id, {bool makeDefault = false}) async {
+    final ids = [...settings.identities];
+    final at = ids.indexWhere(
+      (i) => i.email.toLowerCase() == id.email.trim().toLowerCase(),
+    );
+    if (at >= 0) {
+      ids[at] = id;
+    } else {
+      ids.add(id);
+    }
+    final index = at >= 0 ? at : ids.length - 1;
+    await updateSettings(
+      settings.copyWith(
+        identities: ids,
+        defaultIdentity: makeDefault || ids.length == 1
+            ? index
+            : settings.defaultIdentity,
+      ),
+    );
+  }
+
   bool pushAfterCommitFor(String path) =>
       entryFor(path)?.pushAfterCommit ?? settings.pushAfterCommit;
 
@@ -242,8 +278,14 @@ class AppController extends ChangeNotifier {
     return r;
   });
 
-  Future<PullResult> pull(String path, {PullStrategy? strategy}) =>
-      run(path, () => git.pull(path, strategy ?? pullStrategyFor(path)));
+  Future<PullResult> pull(String path, {PullStrategy? strategy}) => run(
+    path,
+    () => git.pull(
+      path,
+      strategy ?? pullStrategyFor(path),
+      identity: identityFor(path),
+    ),
+  );
 
   Future<PushResult> push(String path) => run(path, () => git.push(path));
 }

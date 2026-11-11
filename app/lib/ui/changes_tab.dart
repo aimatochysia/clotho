@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 
 import '../core/git_service.dart';
 import '../state/repo_controller.dart';
+import 'identity.dart';
+import 'widgets/binary_preview.dart';
 import 'widgets/diff_view.dart';
 import 'widgets/feedback.dart';
 
@@ -81,7 +83,22 @@ class _DiffPane extends StatelessWidget {
           ),
         ),
         const Divider(height: 1),
-        Expanded(child: DiffView(diff: d)),
+        Expanded(
+          child: DiffView(
+            diff: d,
+            binary: BinaryPreview(
+              // A fresh diff (the file changed again) reloads the preview.
+              key: ObjectKey(d),
+              file: d.path,
+              git: repo.git,
+              load: () => repo.git.workingFileVersions(
+                repo.path,
+                d.path,
+                staged: repo.selection!.staged,
+              ),
+            ),
+          ),
+        ),
       ],
     );
   }
@@ -319,7 +336,11 @@ class _CommitBoxState extends State<CommitBox> {
 
   Future<void> _commit() async {
     setState(() => _working = true);
-    final outcome = await guarded(context, () => repo.commit(_message.text));
+    final outcome = await withIdentity(
+      context,
+      repo.app,
+      () => repo.commit(_message.text),
+    );
     if (!mounted) return;
     setState(() => _working = false);
     if (outcome == null) return;

@@ -3,6 +3,7 @@ use std::sync::Mutex;
 
 use serde::{Deserialize, Serialize};
 
+use crate::api::identity::{validate_identity, Identity};
 use crate::api::remote::PullStrategy;
 use crate::api::repo::inspect_repo;
 use crate::error::{CoreError, CoreResult};
@@ -20,6 +21,10 @@ pub struct AppSettings {
     pub check_updates: bool,
     /// Folder the clone dialog suggests (the last one used).
     pub clone_dir: Option<String>,
+    /// Names and emails to commit as. Empty means Git's own config is used.
+    pub identities: Vec<Identity>,
+    /// Index into `identities` used unless a repository picks another.
+    pub default_identity: u32,
 }
 
 impl Default for AppSettings {
@@ -30,6 +35,8 @@ impl Default for AppSettings {
             scan_depth: 3,
             check_updates: true,
             clone_dir: None,
+            identities: vec![],
+            default_identity: 0,
         }
     }
 }
@@ -52,6 +59,9 @@ pub struct RepoEntry {
     /// whatever the app sends here in `update_repo` is ignored.
     #[serde(default)]
     pub last_auto_fetch: Option<i64>,
+    /// Email of the identity to commit as here; None uses the default.
+    #[serde(default)]
+    pub identity_email: Option<String>,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -193,6 +203,7 @@ pub fn add_repos(config_dir: String, paths: Vec<String>) -> CoreResult<AddReport
                     push_after_commit: None,
                     fetch_schedule: FetchSchedule::off(),
                     last_auto_fetch: None,
+                    identity_email: None,
                 });
                 added.push(info.path);
             }
@@ -249,8 +260,23 @@ pub fn update_repo(config_dir: String, entry: RepoEntry) -> CoreResult<Registry>
 pub fn update_settings(config_dir: String, settings: AppSettings) -> CoreResult<Registry> {
     let _g = LOCK.lock().unwrap();
     let mut reg = read(&config_dir)?;
+    let mut identities: Vec<Identity> = vec![];
+    for id in settings.identities.iter().cloned() {
+        let id = validate_identity(id)?;
+        if !identities
+            .iter()
+            .any(|i| i.email.eq_ignore_ascii_case(&id.email))
+        {
+            identities.push(id);
+        }
+    }
+    let default_identity = settings
+        .default_identity
+        .min(identities.len().saturating_sub(1) as u32);
     reg.settings = AppSettings {
         scan_depth: settings.scan_depth.clamp(1, 8),
+        identities,
+        default_identity,
         ..settings
     };
     write(&config_dir, &reg)?;
@@ -447,6 +473,35 @@ mod tests {
         e.last_auto_fetch = None;
         update_repo(c.clone(), e).unwrap();
         assert!(due_for_fetch(c.clone(), 1_100).unwrap().is_empty());
+    }
+
+    #[test]
+    fn identities_are_checked_and_deduplicated() {
+        let (_d, c) = cfg();
+        let id = |n: &str, e: &str| Identity {
+            name: n.into(),
+            email: e.into(),
+        };
+        let s = AppSettings {
+            identities: vec![
+                id("A", "a@x.io"),
+                id("A again", "A@X.io"),
+                id(" B ", "b@x.io"),
+            ],
+            default_identity: 9,
+            ..AppSettings::default()
+        };
+        let reg = update_settings(c.clone(), s).unwrap();
+        assert_eq!(
+            reg.settings.identities,
+            vec![id("A", "a@x.io"), id("B", "b@x.io")]
+        );
+        assert_eq!(reg.settings.default_identity, 1);
+        let bad = AppSettings {
+            identities: vec![id("C", "not-an-email")],
+            ..AppSettings::default()
+        };
+        assert!(update_settings(c, bad).is_err());
     }
 
     #[test]

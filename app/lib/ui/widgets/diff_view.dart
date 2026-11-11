@@ -4,9 +4,17 @@ import '../../core/git_service.dart';
 
 /// Unified diff with line numbers and colored additions/removals.
 class DiffView extends StatelessWidget {
-  const DiffView({super.key, required this.diff, this.shrinkWrap = false});
+  const DiffView({
+    super.key,
+    required this.diff,
+    this.shrinkWrap = false,
+    this.binary,
+  });
 
   final FileDiff diff;
+
+  /// Shown instead of the text diff for binary files (an image preview).
+  final Widget? binary;
 
   /// True when embedded inside another scroll view (commit details).
   final bool shrinkWrap;
@@ -16,6 +24,10 @@ class DiffView extends StatelessWidget {
     final scheme = Theme.of(context).colorScheme;
     final dark = Theme.of(context).brightness == Brightness.dark;
     if (diff.isBinary) {
+      final b = binary;
+      if (b != null) {
+        return shrinkWrap ? b : SingleChildScrollView(child: b);
+      }
       return const _Notice(
         icon: Icons.memory,
         text: 'Binary file; no text diff to show.',

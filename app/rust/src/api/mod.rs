@@ -3,6 +3,8 @@ pub mod branches;
 pub mod changes;
 pub mod github;
 pub mod history;
+pub mod identity;
+pub mod preview;
 pub mod registry;
 pub mod remote;
 pub mod repo;

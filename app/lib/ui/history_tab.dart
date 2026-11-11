@@ -6,6 +6,7 @@ import '../core/format.dart';
 import '../core/git_service.dart';
 import '../state/repo_controller.dart';
 import 'widgets/commit_graph.dart';
+import 'widgets/binary_preview.dart';
 import 'widgets/diff_view.dart';
 import 'widgets/feedback.dart';
 
@@ -232,7 +233,22 @@ class _CommitPageState extends State<CommitPage> {
                       additions: f.additions,
                       deletions: f.deletions,
                     ),
-                    children: [DiffView(diff: f, shrinkWrap: true)],
+                    children: [
+                      DiffView(
+                        diff: f,
+                        shrinkWrap: true,
+                        binary: BinaryPreview(
+                          file: f.path,
+                          git: widget.repo.git,
+                          load: () => widget.repo.git.commitFileVersions(
+                            widget.repo.path,
+                            c.oid,
+                            f.path,
+                            oldPath: f.oldPath,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
             ],

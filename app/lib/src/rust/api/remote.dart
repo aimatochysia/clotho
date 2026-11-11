@@ -5,6 +5,7 @@
 
 import '../error.dart';
 import '../frb_generated.dart';
+import 'identity.dart';
 
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
@@ -22,10 +23,12 @@ Future<PullResult> pull({
   required String path,
   required PullStrategy strategy,
   required AuthOptions auth,
+  Identity? identity,
 }) => RustLib.instance.api.crateApiRemotePull(
   path: path,
   strategy: strategy,
   auth: auth,
+  identity: identity,
 );
 
 /// Pushes the current branch to its upstream, or to `origin` with the same

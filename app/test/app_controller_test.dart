@@ -136,6 +136,27 @@ void main() {
     expect(fetchScheduleOff.label, 'every hour');
   });
 
+  test('identity: repo choice, then default, then Git config', () async {
+    const x = Identity(name: 'X', email: 'x@example.com');
+    const y = Identity(name: 'Y', email: 'y@example.com');
+    final git = FakeGitService(
+      repos: [
+        a,
+        b.copyWith(identityEmail: 'Y@example.com'),
+      ],
+    );
+    final app = AppController(git);
+    await app.init();
+    expect(app.identityFor('/r/a'), isNull, reason: 'none saved: Git config');
+    await app.saveIdentity(x);
+    await app.saveIdentity(y);
+    expect(app.identityFor('/r/a'), x, reason: 'first one is the default');
+    expect(app.identityFor('/r/b'), y, reason: 'repo override');
+    await app.saveIdentity(y, makeDefault: true);
+    expect(app.identityFor('/r/a'), y);
+    app.dispose();
+  });
+
   test('pull uses the effective strategy', () async {
     final git = FakeGitService(repos: [a, b]);
     final app = AppController(git);

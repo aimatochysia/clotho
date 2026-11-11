@@ -171,7 +171,13 @@ class RepoController extends ChangeNotifier {
   Future<CommitOutcome> commit(String message) async {
     final result = await app.run(
       path,
-      () => git.commit(path, message, stageAll: stageAllOnCommit, amend: amend),
+      () => git.commit(
+        path,
+        message,
+        stageAll: stageAllOnCommit,
+        amend: amend,
+        identity: app.identityFor(path),
+      ),
     );
     amend = false;
     PushResult? pushed;

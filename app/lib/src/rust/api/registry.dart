@@ -5,6 +5,7 @@
 
 import '../error.dart';
 import '../frb_generated.dart';
+import 'identity.dart';
 
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
@@ -117,12 +118,20 @@ class AppSettings {
   /// Folder the clone dialog suggests (the last one used).
   final String? cloneDir;
 
+  /// Names and emails to commit as. Empty means Git's own config is used.
+  final List<Identity> identities;
+
+  /// Index into `identities` used unless a repository picks another.
+  final int defaultIdentity;
+
   const AppSettings({
     required this.pullStrategy,
     required this.pushAfterCommit,
     required this.scanDepth,
     required this.checkUpdates,
     this.cloneDir,
+    required this.identities,
+    required this.defaultIdentity,
   });
 
   static Future<AppSettings> default_() =>
@@ -134,7 +143,9 @@ class AppSettings {
       pushAfterCommit.hashCode ^
       scanDepth.hashCode ^
       checkUpdates.hashCode ^
-      cloneDir.hashCode;
+      cloneDir.hashCode ^
+      identities.hashCode ^
+      defaultIdentity.hashCode;
 
   @override
   bool operator ==(Object other) =>
@@ -145,7 +156,9 @@ class AppSettings {
           pushAfterCommit == other.pushAfterCommit &&
           scanDepth == other.scanDepth &&
           checkUpdates == other.checkUpdates &&
-          cloneDir == other.cloneDir;
+          cloneDir == other.cloneDir &&
+          identities == other.identities &&
+          defaultIdentity == other.defaultIdentity;
 }
 
 /// "Every `every` `unit`", for example every 2 hours.
@@ -212,6 +225,9 @@ class RepoEntry {
   /// whatever the app sends here in `update_repo` is ignored.
   final PlatformInt64? lastAutoFetch;
 
+  /// Email of the identity to commit as here; None uses the default.
+  final String? identityEmail;
+
   const RepoEntry({
     required this.path,
     required this.name,
@@ -219,6 +235,7 @@ class RepoEntry {
     this.pushAfterCommit,
     required this.fetchSchedule,
     this.lastAutoFetch,
+    this.identityEmail,
   });
 
   @override
@@ -228,7 +245,8 @@ class RepoEntry {
       pullStrategy.hashCode ^
       pushAfterCommit.hashCode ^
       fetchSchedule.hashCode ^
-      lastAutoFetch.hashCode;
+      lastAutoFetch.hashCode ^
+      identityEmail.hashCode;
 
   @override
   bool operator ==(Object other) =>
@@ -240,7 +258,8 @@ class RepoEntry {
           pullStrategy == other.pullStrategy &&
           pushAfterCommit == other.pushAfterCommit &&
           fetchSchedule == other.fetchSchedule &&
-          lastAutoFetch == other.lastAutoFetch;
+          lastAutoFetch == other.lastAutoFetch &&
+          identityEmail == other.identityEmail;
 }
 
 class SkippedPath {

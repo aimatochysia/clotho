@@ -2,6 +2,7 @@ use std::path::Path;
 
 use git2::{DiffOptions, Oid, Repository};
 
+use crate::api::identity::{signature, Identity};
 use crate::error::{CoreError, CoreResult};
 use crate::util::{self, open_repo};
 
@@ -277,6 +278,7 @@ pub fn commit(
     message: String,
     stage_all_first: bool,
     amend: bool,
+    identity: Option<Identity>,
 ) -> CoreResult<CommitResult> {
     let mut repo = open_repo(&path)?;
     util::workdir(&repo)?;
@@ -318,7 +320,7 @@ pub fn commit(
         return Err(CoreError::NothingToCommit);
     }
 
-    let sig = repo.signature().map_err(|_| CoreError::MissingIdentity)?;
+    let sig = signature(&repo, identity.as_ref())?;
     let oid = if amend {
         let head = head_commit.ok_or_else(|| CoreError::InvalidInput {
             message: "there is no commit to amend".into(),
@@ -444,18 +446,18 @@ mod tests {
     fn commit_without_changes_is_refused() {
         let t = TestRepo::new("main");
         t.commit_file("a.txt", "a\n", "init");
-        let err = commit(t.path(), "nothing".into(), false, false).unwrap_err();
+        let err = commit(t.path(), "nothing".into(), false, false, None).unwrap_err();
         assert!(matches!(err, CoreError::NothingToCommit));
         // Unstaged changes alone do not count unless stage_all_first is set.
         t.write("a.txt", "b\n");
-        let err = commit(t.path(), "still nothing".into(), false, false).unwrap_err();
+        let err = commit(t.path(), "still nothing".into(), false, false, None).unwrap_err();
         assert!(matches!(err, CoreError::NothingToCommit));
     }
 
     #[test]
     fn commit_on_empty_repo_with_nothing_staged_is_refused() {
         let t = TestRepo::new("main");
-        let err = commit(t.path(), "x".into(), true, false).unwrap_err();
+        let err = commit(t.path(), "x".into(), true, false, None).unwrap_err();
         assert!(matches!(err, CoreError::NothingToCommit));
     }
 
@@ -463,7 +465,7 @@ mod tests {
     fn empty_message_is_refused() {
         let t = TestRepo::new("main");
         t.write("a.txt", "a\n");
-        let err = commit(t.path(), "   ".into(), true, false).unwrap_err();
+        let err = commit(t.path(), "   ".into(), true, false, None).unwrap_err();
         assert!(matches!(err, CoreError::InvalidInput { .. }));
     }
 
@@ -473,7 +475,7 @@ mod tests {
         t.commit_file("a.txt", "a\n", "init");
         t.write("a.txt", "b\n");
         t.write("new.txt", "n\n");
-        let r = commit(t.path(), "feat: change\n\nbody".into(), true, false).unwrap();
+        let r = commit(t.path(), "feat: change\n\nbody".into(), true, false, None).unwrap();
         assert_eq!(r.summary, "feat: change");
         let st = repo_status(t.path()).unwrap();
         assert!(st.files.is_empty());
@@ -486,7 +488,7 @@ mod tests {
     fn amend_rewrites_last_commit() {
         let t = TestRepo::new("main");
         t.commit_file("a.txt", "a\n", "init");
-        let r = commit(t.path(), "better message".into(), false, true).unwrap();
+        let r = commit(t.path(), "better message".into(), false, true, None).unwrap();
         let head = t.repo.head().unwrap().peel_to_commit().unwrap();
         assert_eq!(head.id().to_string(), r.oid);
         assert_eq!(head.summary(), Some("better message"));
