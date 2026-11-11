@@ -3,8 +3,10 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path_provider/path_provider.dart';
 
 import 'app.dart';
+import 'core/background_fetch.dart';
 import 'core/git_service.dart';
 import 'core/github_service.dart';
+import 'core/notifications.dart';
 import 'core/token_store.dart';
 import 'core/update_service.dart';
 import 'src/rust/frb_generated.dart';
@@ -24,6 +26,8 @@ Future<void> main() async {
       configDir: configDir.path,
       authProvider: () async => auth.authOptions,
     ),
+    notifier: LocalFetchNotifier(),
+    background: platformBackgroundFetch(),
   );
   final updates = UpdateController(
     service: RustUpdateService(),

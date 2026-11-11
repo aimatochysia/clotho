@@ -7,6 +7,8 @@ import '../frb_generated.dart';
 
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
+// These functions are ignored because they are not marked as `pub`: `trust_shared_storage`
+
 /// Version of the Rust core, taken from Cargo.toml at build time.
 String coreVersion() => RustLib.instance.api.crateApiAppCoreVersion();
 

@@ -11,8 +11,6 @@ use crate::error::{CoreError, CoreResult};
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(default)]
 pub struct AppSettings {
-    /// Minutes between background fetches; 0 turns auto fetch off.
-    pub auto_fetch_minutes: u32,
     pub pull_strategy: PullStrategy,
     /// Push automatically after every successful commit.
     pub push_after_commit: bool,
@@ -27,7 +25,6 @@ pub struct AppSettings {
 impl Default for AppSettings {
     fn default() -> Self {
         AppSettings {
-            auto_fetch_minutes: 5,
             pull_strategy: PullStrategy::FastForwardOnly,
             push_after_commit: false,
             scan_depth: 3,
@@ -48,12 +45,60 @@ pub struct RepoEntry {
     /// Overrides `AppSettings::push_after_commit` when set.
     #[serde(default)]
     pub push_after_commit: Option<bool>,
-    #[serde(default = "yes")]
-    pub auto_fetch: bool,
+    /// When to fetch this repository automatically. Off unless turned on.
+    #[serde(default = "FetchSchedule::off")]
+    pub fetch_schedule: FetchSchedule,
+    /// Unix seconds of the last automatic fetch; kept by the core, so
+    /// whatever the app sends here in `update_repo` is ignored.
+    #[serde(default)]
+    pub last_auto_fetch: Option<i64>,
 }
 
-fn yes() -> bool {
-    true
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub enum FetchUnit {
+    Minutes,
+    Hours,
+    Days,
+}
+
+/// "Every `every` `unit`", for example every 2 hours.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub struct FetchSchedule {
+    pub enabled: bool,
+    pub every: u32,
+    pub unit: FetchUnit,
+}
+
+/// Largest value accepted for `FetchSchedule::every`.
+pub const MAX_FETCH_EVERY: u32 = 999;
+
+impl FetchSchedule {
+    #[flutter_rust_bridge::frb(ignore)]
+    pub fn off() -> Self {
+        FetchSchedule {
+            enabled: false,
+            every: 1,
+            unit: FetchUnit::Hours,
+        }
+    }
+
+    fn clamped(self) -> Self {
+        FetchSchedule {
+            every: self.every.clamp(1, MAX_FETCH_EVERY),
+            ..self
+        }
+    }
+
+    /// Seconds between fetches.
+    #[flutter_rust_bridge::frb(ignore)]
+    pub fn interval_seconds(&self) -> i64 {
+        let unit = match self.unit {
+            FetchUnit::Minutes => 60,
+            FetchUnit::Hours => 3600,
+            FetchUnit::Days => 86_400,
+        };
+        i64::from(self.every.max(1)) * unit
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -146,7 +191,8 @@ pub fn add_repos(config_dir: String, paths: Vec<String>) -> CoreResult<AddReport
                     name,
                     pull_strategy: None,
                     push_after_commit: None,
-                    auto_fetch: true,
+                    fetch_schedule: FetchSchedule::off(),
+                    last_auto_fetch: None,
                 });
                 added.push(info.path);
             }
@@ -192,6 +238,8 @@ pub fn update_repo(config_dir: String, entry: RepoEntry) -> CoreResult<Registry>
         } else {
             name.to_string()
         },
+        fetch_schedule: entry.fetch_schedule.clamped(),
+        last_auto_fetch: slot.last_auto_fetch,
         ..entry
     };
     write(&config_dir, &reg)?;
@@ -207,6 +255,37 @@ pub fn update_settings(config_dir: String, settings: AppSettings) -> CoreResult<
     };
     write(&config_dir, &reg)?;
     Ok(reg)
+}
+
+/// Paths of the repositories whose automatic fetch is due at `now_seconds`
+/// (Unix time). A repository that was never fetched automatically is due.
+pub fn due_for_fetch(config_dir: String, now_seconds: i64) -> CoreResult<Vec<String>> {
+    let _g = LOCK.lock().unwrap();
+    let reg = read(&config_dir)?;
+    Ok(reg
+        .repos
+        .iter()
+        .filter(|r| r.fetch_schedule.enabled)
+        .filter(|r| match r.last_auto_fetch {
+            None => true,
+            // A clock that jumped backwards counts as due.
+            Some(last) => {
+                now_seconds < last || now_seconds - last >= r.fetch_schedule.interval_seconds()
+            }
+        })
+        .map(|r| r.path.clone())
+        .collect())
+}
+
+/// Records an automatic fetch of `path` at `at_seconds` (Unix time).
+pub fn mark_auto_fetched(config_dir: String, path: String, at_seconds: i64) -> CoreResult<()> {
+    let _g = LOCK.lock().unwrap();
+    let mut reg = read(&config_dir)?;
+    if let Some(r) = reg.repos.iter_mut().find(|r| same_path(&r.path, &path)) {
+        r.last_auto_fetch = Some(at_seconds);
+        write(&config_dir, &reg)?;
+    }
+    Ok(())
 }
 
 fn same_path(a: &str, b: &str) -> bool {
@@ -258,7 +337,7 @@ mod tests {
         assert_eq!(report.skipped.len(), 2);
         let reloaded = load_registry(c).unwrap();
         assert_eq!(reloaded.repos.len(), 1);
-        assert!(reloaded.repos[0].auto_fetch);
+        assert!(!reloaded.repos[0].fetch_schedule.enabled, "off by default");
     }
 
     #[test]
@@ -302,6 +381,83 @@ mod tests {
         .unwrap();
         let reg = load_registry(c).unwrap();
         assert_eq!(reg.settings, AppSettings::default());
-        assert!(reg.repos[0].auto_fetch);
+        assert_eq!(reg.repos[0].fetch_schedule, FetchSchedule::off());
+    }
+
+    #[test]
+    fn old_auto_fetch_flag_is_ignored() {
+        let (_d, c) = cfg();
+        std::fs::create_dir_all(&c).unwrap();
+        std::fs::write(
+            Path::new(&c).join(FILE_NAME),
+            r#"{"settings":{"auto_fetch_minutes":5},"repos":[{"path":"/x","name":"x","auto_fetch":true}]}"#,
+        )
+        .unwrap();
+        let reg = load_registry(c).unwrap();
+        assert!(!reg.repos[0].fetch_schedule.enabled);
+    }
+
+    #[test]
+    fn schedule_decides_what_is_due() {
+        let (_d, c) = cfg();
+        let a = TestRepo::new("main");
+        let b = TestRepo::new("main");
+        let reg = add_repos(c.clone(), vec![a.path(), b.path()])
+            .unwrap()
+            .registry;
+        assert!(
+            due_for_fetch(c.clone(), 1_000).unwrap().is_empty(),
+            "all off"
+        );
+
+        let mut e = reg
+            .repos
+            .iter()
+            .find(|r| r.path == a.path())
+            .unwrap()
+            .clone();
+        e.fetch_schedule = FetchSchedule {
+            enabled: true,
+            every: 0, // clamped to 1
+            unit: FetchUnit::Hours,
+        };
+        e.last_auto_fetch = Some(42); // ignored: the core owns this field
+        let reg = update_repo(c.clone(), e).unwrap();
+        let saved = reg.repos.iter().find(|r| r.path == a.path()).unwrap();
+        assert_eq!(saved.fetch_schedule.every, 1);
+        assert_eq!(saved.last_auto_fetch, None);
+
+        assert_eq!(due_for_fetch(c.clone(), 1_000).unwrap(), vec![a.path()]);
+        mark_auto_fetched(c.clone(), a.path(), 1_000).unwrap();
+        assert!(due_for_fetch(c.clone(), 1_000 + 3_599).unwrap().is_empty());
+        assert_eq!(
+            due_for_fetch(c.clone(), 1_000 + 3_600).unwrap(),
+            vec![a.path()]
+        );
+        assert_eq!(due_for_fetch(c.clone(), 10).unwrap(), vec![a.path()]);
+
+        // Editing other settings keeps the last fetch time.
+        let mut e = load_registry(c.clone())
+            .unwrap()
+            .repos
+            .into_iter()
+            .find(|r| r.path == a.path())
+            .unwrap();
+        e.name = "A".into();
+        e.last_auto_fetch = None;
+        update_repo(c.clone(), e).unwrap();
+        assert!(due_for_fetch(c.clone(), 1_100).unwrap().is_empty());
+    }
+
+    #[test]
+    fn interval_units() {
+        let s = |every, unit| FetchSchedule {
+            enabled: true,
+            every,
+            unit,
+        };
+        assert_eq!(s(5, FetchUnit::Minutes).interval_seconds(), 300);
+        assert_eq!(s(2, FetchUnit::Hours).interval_seconds(), 7_200);
+        assert_eq!(s(3, FetchUnit::Days).interval_seconds(), 259_200);
     }
 }

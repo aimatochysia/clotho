@@ -15,6 +15,19 @@ pub fn libgit2_version() -> String {
 #[flutter_rust_bridge::frb(init)]
 pub fn init_app() {
     flutter_rust_bridge::setup_default_user_utils();
+    trust_shared_storage();
+}
+
+/// libgit2, like Git, refuses repositories owned by another user. Android's
+/// shared storage (/storage/emulated/0) is always owned by a system user,
+/// never by the app, so every repository there would be refused. Android
+/// already sandboxes each app, so the check protects nothing there.
+fn trust_shared_storage() {
+    #[cfg(target_os = "android")]
+    // SAFETY: called once at start-up, before any repository is opened.
+    unsafe {
+        let _ = git2::opts::set_verify_owner_validation(false);
+    }
 }
 
 #[cfg(test)]

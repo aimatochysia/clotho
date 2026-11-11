@@ -2,8 +2,11 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 
+import '../core/auto_fetch.dart';
+import '../core/background_fetch.dart';
 import '../core/errors.dart';
 import '../core/git_service.dart';
+import '../core/notifications.dart';
 
 /// Status of one repository on the dashboard.
 class RepoView {
@@ -28,9 +31,19 @@ class RepoView {
 
 /// Owns the repository list, settings and per-repo status for the whole app.
 class AppController extends ChangeNotifier {
-  AppController(this.git);
+  AppController(
+    this.git, {
+    this.notifier = const SilentNotifier(),
+    this.background = const NoBackgroundFetch(),
+    this.tick = const Duration(minutes: 1),
+  });
 
   final GitService git;
+  final FetchNotifier notifier;
+  final BackgroundFetch background;
+
+  /// How often the app checks whether a scheduled fetch is due.
+  final Duration tick;
 
   Registry? _registry;
   final Map<String, RepoStatus> _status = {};
@@ -39,6 +52,7 @@ class AppController extends ChangeNotifier {
   final Set<String> _busy = {};
   Timer? _autoFetch;
   bool _fetchingAll = false;
+  Future<void>? _autoRun;
 
   bool get loaded => _registry != null;
   AppSettings get settings => _registry!.settings;
@@ -73,9 +87,15 @@ class AppController extends ChangeNotifier {
   Future<void> init() async {
     _registry = await git.loadRegistry();
     notifyListeners();
-    _scheduleAutoFetch();
     await refreshAll();
+    _startAutoFetch();
+    await background.sync(enabled: anyAutoFetch);
   }
+
+  /// Whether any repository has automatic fetch turned on.
+  bool get anyAutoFetch => (_registry?.repos ?? const <RepoEntry>[]).any(
+    (r) => r.fetchSchedule.enabled,
+  );
 
   @override
   void dispose() {
@@ -107,12 +127,13 @@ class AppController extends ChangeNotifier {
   Future<void> updateRepo(RepoEntry entry) async {
     _registry = await git.updateRepo(entry);
     notifyListeners();
+    await background.sync(enabled: anyAutoFetch);
+    // A newly enabled schedule is due right away.
+    if (entry.fetchSchedule.enabled) unawaited(runAutoFetch());
   }
 
   Future<void> updateSettings(AppSettings next) async {
-    final intervalChanged = next.autoFetchMinutes != settings.autoFetchMinutes;
     _registry = await git.updateSettings(next);
-    if (intervalChanged) _scheduleAutoFetch();
     notifyListeners();
   }
 
@@ -138,25 +159,51 @@ class AppController extends ChangeNotifier {
 
   // ---- remote operations -------------------------------------------------
 
-  void _scheduleAutoFetch() {
+  void _startAutoFetch() {
     _autoFetch?.cancel();
-    final minutes = _registry?.settings.autoFetchMinutes ?? 0;
-    if (minutes <= 0) return;
-    _autoFetch = Timer.periodic(
-      Duration(minutes: minutes),
-      (_) => fetchAll(auto: true),
-    );
+    _autoFetch = Timer.periodic(tick, (_) => runAutoFetch());
+    unawaited(runAutoFetch());
   }
 
-  /// Fetches every repository (only those with auto fetch on when [auto]).
-  /// Failures are recorded per repository instead of interrupting the rest.
-  Future<void> fetchAll({bool auto = false}) async {
+  /// Fetches the repositories whose schedule is due and notifies about new
+  /// commits. Runs every [tick] while the app is open.
+  Future<void> runAutoFetch({DateTime? now}) {
+    final running = _autoRun;
+    if (running != null) return running;
+    if (!anyAutoFetch) return Future.value();
+    return _autoRun = _autoFetchOnce(now).whenComplete(() => _autoRun = null);
+  }
+
+  Future<void> _autoFetchOnce(DateTime? now) async {
+    try {
+      final results = await runDueFetches(git, now: now, skip: {..._busy});
+      if (results.isEmpty) return;
+      for (final r in results) {
+        if (r.error == null) {
+          _fetchErrors.remove(r.path);
+        } else {
+          _fetchErrors[r.path] = describeError(r.error!);
+        }
+      }
+      _registry = await git.loadRegistry();
+      await Future.wait(results.map((r) => refreshStatus(r.path)));
+      await notifier.newCommits([
+        for (final r in results)
+          if (r.newCommits != null) r.newCommits!,
+      ]);
+    } catch (_) {
+      // Try again on the next tick.
+    }
+  }
+
+  /// Fetches every repository now. Failures are recorded per repository
+  /// instead of interrupting the rest.
+  Future<void> fetchAll() async {
     if (_fetchingAll) return;
     _fetchingAll = true;
     notifyListeners();
     try {
       for (final e in _registry?.repos ?? const <RepoEntry>[]) {
-        if (auto && !e.autoFetch) continue;
         if (_busy.contains(e.path)) continue;
         await _fetchOne(e.path);
       }

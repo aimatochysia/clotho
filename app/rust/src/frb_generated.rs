@@ -39,7 +39,7 @@ flutter_rust_bridge::frb_generated_boilerplate!(
     default_rust_auto_opaque = RustAutoOpaqueMoi,
 );
 pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_VERSION: &str = "2.13.0";
-pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = -2080262516;
+pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = -1960891892;
 
 // Section: executor
 
@@ -607,6 +607,41 @@ fn wire__crate__api__update__download_update_impl(
         },
     )
 }
+fn wire__crate__api__registry__due_for_fetch_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_normal::<flutter_rust_bridge::for_generated::SseCodec, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "due_for_fetch",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_config_dir = <String>::sse_decode(&mut deserializer);
+            let api_now_seconds = <i64>::sse_decode(&mut deserializer);
+            deserializer.end();
+            move |context| {
+                transform_result_sse::<_, crate::error::CoreError>((move || {
+                    let output_ok =
+                        crate::api::registry::due_for_fetch(api_config_dir, api_now_seconds)?;
+                    std::result::Result::Ok(output_ok)
+                })())
+            }
+        },
+    )
+}
 fn wire__crate__api__remote__fetch_all_impl(
     port_: flutter_rust_bridge::for_generated::MessagePort,
     ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
@@ -1122,6 +1157,45 @@ fn wire__crate__api__history__log_page_impl(
                         api_all_branches,
                         api_skip,
                         api_limit,
+                    )?;
+                    std::result::Result::Ok(output_ok)
+                })())
+            }
+        },
+    )
+}
+fn wire__crate__api__registry__mark_auto_fetched_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_normal::<flutter_rust_bridge::for_generated::SseCodec, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "mark_auto_fetched",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_config_dir = <String>::sse_decode(&mut deserializer);
+            let api_path = <String>::sse_decode(&mut deserializer);
+            let api_at_seconds = <i64>::sse_decode(&mut deserializer);
+            deserializer.end();
+            move |context| {
+                transform_result_sse::<_, crate::error::CoreError>((move || {
+                    let output_ok = crate::api::registry::mark_auto_fetched(
+                        api_config_dir,
+                        api_path,
+                        api_at_seconds,
                     )?;
                     std::result::Result::Ok(output_ok)
                 })())
@@ -1677,14 +1751,12 @@ impl SseDecode for crate::api::registry::AddReport {
 impl SseDecode for crate::api::registry::AppSettings {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
-        let mut var_autoFetchMinutes = <u32>::sse_decode(deserializer);
         let mut var_pullStrategy = <crate::api::remote::PullStrategy>::sse_decode(deserializer);
         let mut var_pushAfterCommit = <bool>::sse_decode(deserializer);
         let mut var_scanDepth = <u32>::sse_decode(deserializer);
         let mut var_checkUpdates = <bool>::sse_decode(deserializer);
         let mut var_cloneDir = <Option<String>>::sse_decode(deserializer);
         return crate::api::registry::AppSettings {
-            auto_fetch_minutes: var_autoFetchMinutes,
             pull_strategy: var_pullStrategy,
             push_after_commit: var_pushAfterCommit,
             scan_depth: var_scanDepth,
@@ -2057,6 +2129,33 @@ impl SseDecode for crate::api::remote::FetchResult {
         return crate::api::remote::FetchResult {
             remotes: var_remotes,
             received_objects: var_receivedObjects,
+        };
+    }
+}
+
+impl SseDecode for crate::api::registry::FetchSchedule {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_enabled = <bool>::sse_decode(deserializer);
+        let mut var_every = <u32>::sse_decode(deserializer);
+        let mut var_unit = <crate::api::registry::FetchUnit>::sse_decode(deserializer);
+        return crate::api::registry::FetchSchedule {
+            enabled: var_enabled,
+            every: var_every,
+            unit: var_unit,
+        };
+    }
+}
+
+impl SseDecode for crate::api::registry::FetchUnit {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut inner = <i32>::sse_decode(deserializer);
+        return match inner {
+            0 => crate::api::registry::FetchUnit::Minutes,
+            1 => crate::api::registry::FetchUnit::Hours,
+            2 => crate::api::registry::FetchUnit::Days,
+            _ => unreachable!("Invalid variant for FetchUnit: {}", inner),
         };
     }
 }
@@ -2460,6 +2559,17 @@ impl SseDecode for Option<crate::api::github::GitHubRemote> {
     }
 }
 
+impl SseDecode for Option<i64> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        if (<bool>::sse_decode(deserializer)) {
+            return Some(<i64>::sse_decode(deserializer));
+        } else {
+            return None;
+        }
+    }
+}
+
 impl SseDecode for Option<crate::api::remote::PullStrategy> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
@@ -2623,13 +2733,15 @@ impl SseDecode for crate::api::registry::RepoEntry {
         let mut var_pullStrategy =
             <Option<crate::api::remote::PullStrategy>>::sse_decode(deserializer);
         let mut var_pushAfterCommit = <Option<bool>>::sse_decode(deserializer);
-        let mut var_autoFetch = <bool>::sse_decode(deserializer);
+        let mut var_fetchSchedule = <crate::api::registry::FetchSchedule>::sse_decode(deserializer);
+        let mut var_lastAutoFetch = <Option<i64>>::sse_decode(deserializer);
         return crate::api::registry::RepoEntry {
             path: var_path,
             name: var_name,
             pull_strategy: var_pullStrategy,
             push_after_commit: var_pushAfterCommit,
-            auto_fetch: var_autoFetch,
+            fetch_schedule: var_fetchSchedule,
+            last_auto_fetch: var_lastAutoFetch,
         };
     }
 }
@@ -2821,44 +2933,46 @@ fn pde_ffi_dispatcher_primary_impl(
         14 => wire__crate__api__changes__diff_file_impl(port, ptr, rust_vec_len, data_len),
         15 => wire__crate__api__changes__discard_paths_impl(port, ptr, rust_vec_len, data_len),
         16 => wire__crate__api__update__download_update_impl(port, ptr, rust_vec_len, data_len),
-        17 => wire__crate__api__remote__fetch_all_impl(port, ptr, rust_vec_len, data_len),
-        18 => wire__crate__api__github__github_get_user_impl(port, ptr, rust_vec_len, data_len),
-        19 => wire__crate__api__github__github_list_issues_impl(port, ptr, rust_vec_len, data_len),
-        20 => wire__crate__api__github__github_list_pulls_impl(port, ptr, rust_vec_len, data_len),
-        21 => wire__crate__api__github__github_list_repos_impl(port, ptr, rust_vec_len, data_len),
-        22 => wire__crate__api__github__github_list_runs_impl(port, ptr, rust_vec_len, data_len),
-        23 => wire__crate__api__github__github_poll_device_flow_impl(
+        17 => wire__crate__api__registry__due_for_fetch_impl(port, ptr, rust_vec_len, data_len),
+        18 => wire__crate__api__remote__fetch_all_impl(port, ptr, rust_vec_len, data_len),
+        19 => wire__crate__api__github__github_get_user_impl(port, ptr, rust_vec_len, data_len),
+        20 => wire__crate__api__github__github_list_issues_impl(port, ptr, rust_vec_len, data_len),
+        21 => wire__crate__api__github__github_list_pulls_impl(port, ptr, rust_vec_len, data_len),
+        22 => wire__crate__api__github__github_list_repos_impl(port, ptr, rust_vec_len, data_len),
+        23 => wire__crate__api__github__github_list_runs_impl(port, ptr, rust_vec_len, data_len),
+        24 => wire__crate__api__github__github_poll_device_flow_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        24 => wire__crate__api__github__github_remote_of_impl(port, ptr, rust_vec_len, data_len),
-        25 => wire__crate__api__github__github_start_device_flow_impl(
+        25 => wire__crate__api__github__github_remote_of_impl(port, ptr, rust_vec_len, data_len),
+        26 => wire__crate__api__github__github_start_device_flow_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        26 => wire__crate__api__app__init_app_impl(port, ptr, rust_vec_len, data_len),
-        27 => wire__crate__api__repo__inspect_repo_impl(port, ptr, rust_vec_len, data_len),
-        29 => wire__crate__api__branches__list_branches_impl(port, ptr, rust_vec_len, data_len),
-        30 => wire__crate__api__registry__load_registry_impl(port, ptr, rust_vec_len, data_len),
-        31 => wire__crate__api__history__log_page_impl(port, ptr, rust_vec_len, data_len),
-        32 => wire__crate__api__remote__pull_impl(port, ptr, rust_vec_len, data_len),
-        33 => wire__crate__api__remote__push_impl(port, ptr, rust_vec_len, data_len),
-        34 => wire__crate__api__registry__remove_repo_impl(port, ptr, rust_vec_len, data_len),
-        35 => wire__crate__api__branches__rename_branch_impl(port, ptr, rust_vec_len, data_len),
-        36 => wire__crate__api__repo__repo_status_impl(port, ptr, rust_vec_len, data_len),
-        37 => wire__crate__api__repo__scan_for_repos_impl(port, ptr, rust_vec_len, data_len),
-        38 => wire__crate__api__update__sha256_file_impl(port, ptr, rust_vec_len, data_len),
-        39 => wire__crate__api__changes__stage_all_impl(port, ptr, rust_vec_len, data_len),
-        40 => wire__crate__api__changes__stage_paths_impl(port, ptr, rust_vec_len, data_len),
-        41 => wire__crate__api__changes__unstage_paths_impl(port, ptr, rust_vec_len, data_len),
-        42 => wire__crate__api__watch__unwatch_repo_impl(port, ptr, rust_vec_len, data_len),
-        43 => wire__crate__api__registry__update_repo_impl(port, ptr, rust_vec_len, data_len),
-        44 => wire__crate__api__registry__update_settings_impl(port, ptr, rust_vec_len, data_len),
-        45 => wire__crate__api__watch__watch_repo_impl(port, ptr, rust_vec_len, data_len),
+        27 => wire__crate__api__app__init_app_impl(port, ptr, rust_vec_len, data_len),
+        28 => wire__crate__api__repo__inspect_repo_impl(port, ptr, rust_vec_len, data_len),
+        30 => wire__crate__api__branches__list_branches_impl(port, ptr, rust_vec_len, data_len),
+        31 => wire__crate__api__registry__load_registry_impl(port, ptr, rust_vec_len, data_len),
+        32 => wire__crate__api__history__log_page_impl(port, ptr, rust_vec_len, data_len),
+        33 => wire__crate__api__registry__mark_auto_fetched_impl(port, ptr, rust_vec_len, data_len),
+        34 => wire__crate__api__remote__pull_impl(port, ptr, rust_vec_len, data_len),
+        35 => wire__crate__api__remote__push_impl(port, ptr, rust_vec_len, data_len),
+        36 => wire__crate__api__registry__remove_repo_impl(port, ptr, rust_vec_len, data_len),
+        37 => wire__crate__api__branches__rename_branch_impl(port, ptr, rust_vec_len, data_len),
+        38 => wire__crate__api__repo__repo_status_impl(port, ptr, rust_vec_len, data_len),
+        39 => wire__crate__api__repo__scan_for_repos_impl(port, ptr, rust_vec_len, data_len),
+        40 => wire__crate__api__update__sha256_file_impl(port, ptr, rust_vec_len, data_len),
+        41 => wire__crate__api__changes__stage_all_impl(port, ptr, rust_vec_len, data_len),
+        42 => wire__crate__api__changes__stage_paths_impl(port, ptr, rust_vec_len, data_len),
+        43 => wire__crate__api__changes__unstage_paths_impl(port, ptr, rust_vec_len, data_len),
+        44 => wire__crate__api__watch__unwatch_repo_impl(port, ptr, rust_vec_len, data_len),
+        45 => wire__crate__api__registry__update_repo_impl(port, ptr, rust_vec_len, data_len),
+        46 => wire__crate__api__registry__update_settings_impl(port, ptr, rust_vec_len, data_len),
+        47 => wire__crate__api__watch__watch_repo_impl(port, ptr, rust_vec_len, data_len),
         _ => unreachable!(),
     }
 }
@@ -2873,7 +2987,7 @@ fn pde_ffi_dispatcher_sync_impl(
     match func_id {
         10 => wire__crate__api__app__core_version_impl(ptr, rust_vec_len, data_len),
         12 => wire__crate__api__update__current_platform_impl(ptr, rust_vec_len, data_len),
-        28 => wire__crate__api__app__libgit2_version_impl(ptr, rust_vec_len, data_len),
+        29 => wire__crate__api__app__libgit2_version_impl(ptr, rust_vec_len, data_len),
         _ => unreachable!(),
     }
 }
@@ -2906,7 +3020,6 @@ impl flutter_rust_bridge::IntoIntoDart<crate::api::registry::AddReport>
 impl flutter_rust_bridge::IntoDart for crate::api::registry::AppSettings {
     fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
         [
-            self.auto_fetch_minutes.into_into_dart().into_dart(),
             self.pull_strategy.into_into_dart().into_dart(),
             self.push_after_commit.into_into_dart().into_dart(),
             self.scan_depth.into_into_dart().into_dart(),
@@ -3314,6 +3427,50 @@ impl flutter_rust_bridge::IntoIntoDart<crate::api::remote::FetchResult>
     }
 }
 // Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::registry::FetchSchedule {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.enabled.into_into_dart().into_dart(),
+            self.every.into_into_dart().into_dart(),
+            self.unit.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::registry::FetchSchedule
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::registry::FetchSchedule>
+    for crate::api::registry::FetchSchedule
+{
+    fn into_into_dart(self) -> crate::api::registry::FetchSchedule {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::registry::FetchUnit {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        match self {
+            Self::Minutes => 0.into_dart(),
+            Self::Hours => 1.into_dart(),
+            Self::Days => 2.into_dart(),
+            _ => unreachable!(),
+        }
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::registry::FetchUnit
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::registry::FetchUnit>
+    for crate::api::registry::FetchUnit
+{
+    fn into_into_dart(self) -> crate::api::registry::FetchUnit {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
 impl flutter_rust_bridge::IntoDart for crate::api::repo::FileChange {
     fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
         [
@@ -3698,7 +3855,8 @@ impl flutter_rust_bridge::IntoDart for crate::api::registry::RepoEntry {
             self.name.into_into_dart().into_dart(),
             self.pull_strategy.into_into_dart().into_dart(),
             self.push_after_commit.into_into_dart().into_dart(),
-            self.auto_fetch.into_into_dart().into_dart(),
+            self.fetch_schedule.into_into_dart().into_dart(),
+            self.last_auto_fetch.into_into_dart().into_dart(),
         ]
         .into_dart()
     }
@@ -3915,7 +4073,6 @@ impl SseEncode for crate::api::registry::AddReport {
 impl SseEncode for crate::api::registry::AppSettings {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
-        <u32>::sse_encode(self.auto_fetch_minutes, serializer);
         <crate::api::remote::PullStrategy>::sse_encode(self.pull_strategy, serializer);
         <bool>::sse_encode(self.push_after_commit, serializer);
         <u32>::sse_encode(self.scan_depth, serializer);
@@ -4203,6 +4360,32 @@ impl SseEncode for crate::api::remote::FetchResult {
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
         <Vec<String>>::sse_encode(self.remotes, serializer);
         <u32>::sse_encode(self.received_objects, serializer);
+    }
+}
+
+impl SseEncode for crate::api::registry::FetchSchedule {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <bool>::sse_encode(self.enabled, serializer);
+        <u32>::sse_encode(self.every, serializer);
+        <crate::api::registry::FetchUnit>::sse_encode(self.unit, serializer);
+    }
+}
+
+impl SseEncode for crate::api::registry::FetchUnit {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <i32>::sse_encode(
+            match self {
+                crate::api::registry::FetchUnit::Minutes => 0,
+                crate::api::registry::FetchUnit::Hours => 1,
+                crate::api::registry::FetchUnit::Days => 2,
+                _ => {
+                    unimplemented!("");
+                }
+            },
+            serializer,
+        );
     }
 }
 
@@ -4510,6 +4693,16 @@ impl SseEncode for Option<crate::api::github::GitHubRemote> {
     }
 }
 
+impl SseEncode for Option<i64> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <bool>::sse_encode(self.is_some(), serializer);
+        if let Some(value) = self {
+            <i64>::sse_encode(value, serializer);
+        }
+    }
+}
+
 impl SseEncode for Option<crate::api::remote::PullStrategy> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
@@ -4657,7 +4850,8 @@ impl SseEncode for crate::api::registry::RepoEntry {
         <String>::sse_encode(self.name, serializer);
         <Option<crate::api::remote::PullStrategy>>::sse_encode(self.pull_strategy, serializer);
         <Option<bool>>::sse_encode(self.push_after_commit, serializer);
-        <bool>::sse_encode(self.auto_fetch, serializer);
+        <crate::api::registry::FetchSchedule>::sse_encode(self.fetch_schedule, serializer);
+        <Option<i64>>::sse_encode(self.last_auto_fetch, serializer);
     }
 }
 

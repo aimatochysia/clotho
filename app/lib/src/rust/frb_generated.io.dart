@@ -78,6 +78,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   GitHubRemote dco_decode_box_autoadd_git_hub_remote(dynamic raw);
 
   @protected
+  PlatformInt64 dco_decode_box_autoadd_i_64(dynamic raw);
+
+  @protected
   PlatformInfo dco_decode_box_autoadd_platform_info(dynamic raw);
 
   @protected
@@ -130,6 +133,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   FetchResult dco_decode_fetch_result(dynamic raw);
+
+  @protected
+  FetchSchedule dco_decode_fetch_schedule(dynamic raw);
+
+  @protected
+  FetchUnit dco_decode_fetch_unit(dynamic raw);
 
   @protected
   FileChange dco_decode_file_change(dynamic raw);
@@ -214,6 +223,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   GitHubRemote? dco_decode_opt_box_autoadd_git_hub_remote(dynamic raw);
+
+  @protected
+  PlatformInt64? dco_decode_opt_box_autoadd_i_64(dynamic raw);
 
   @protected
   PullStrategy? dco_decode_opt_box_autoadd_pull_strategy(dynamic raw);
@@ -338,6 +350,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  PlatformInt64 sse_decode_box_autoadd_i_64(SseDeserializer deserializer);
+
+  @protected
   PlatformInfo sse_decode_box_autoadd_platform_info(
     SseDeserializer deserializer,
   );
@@ -396,6 +411,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   FetchResult sse_decode_fetch_result(SseDeserializer deserializer);
+
+  @protected
+  FetchSchedule sse_decode_fetch_schedule(SseDeserializer deserializer);
+
+  @protected
+  FetchUnit sse_decode_fetch_unit(SseDeserializer deserializer);
 
   @protected
   FileChange sse_decode_file_change(SseDeserializer deserializer);
@@ -484,6 +505,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   GitHubRemote? sse_decode_opt_box_autoadd_git_hub_remote(
     SseDeserializer deserializer,
   );
+
+  @protected
+  PlatformInt64? sse_decode_opt_box_autoadd_i_64(SseDeserializer deserializer);
 
   @protected
   PullStrategy? sse_decode_opt_box_autoadd_pull_strategy(
@@ -630,6 +654,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  void sse_encode_box_autoadd_i_64(
+    PlatformInt64 self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_box_autoadd_platform_info(
     PlatformInfo self,
     SseSerializer serializer,
@@ -700,6 +730,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   void sse_encode_fetch_result(FetchResult self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_fetch_schedule(FetchSchedule self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_fetch_unit(FetchUnit self, SseSerializer serializer);
 
   @protected
   void sse_encode_file_change(FileChange self, SseSerializer serializer);
@@ -818,6 +854,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   @protected
   void sse_encode_opt_box_autoadd_git_hub_remote(
     GitHubRemote? self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_opt_box_autoadd_i_64(
+    PlatformInt64? self,
     SseSerializer serializer,
   );
 

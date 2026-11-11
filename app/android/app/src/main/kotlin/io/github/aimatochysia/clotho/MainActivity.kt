@@ -6,6 +6,7 @@ import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.os.Environment
+import android.os.PowerManager
 import android.provider.DocumentsContract
 import android.provider.Settings
 import java.io.File
@@ -21,6 +22,7 @@ import io.flutter.plugin.common.MethodChannel.Result
  */
 class MainActivity : FlutterActivity() {
     private var pendingPick: Result? = null
+    private var pendingBattery: Result? = null
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
@@ -45,6 +47,32 @@ class MainActivity : FlutterActivity() {
                         } catch (e: Exception) {
                             pendingPick = null
                             result.error("picker", e.message, null)
+                        }
+                    }
+                    // Scheduled fetches only run on time while the app is
+                    // closed when battery optimisation is off for Clotho.
+                    "isIgnoringBatteryOptimizations" -> result.success(ignoringBattery())
+                    "requestIgnoreBatteryOptimizations" -> {
+                        if (ignoringBattery()) {
+                            result.success(true)
+                        } else {
+                            pendingBattery?.success(ignoringBattery())
+                            pendingBattery = result
+                            try {
+                                @Suppress("BatteryLife")
+                                val intent = Intent(
+                                    Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS,
+                                    Uri.parse("package:$packageName"),
+                                )
+                                startActivityForResult(intent, BATTERY)
+                            } catch (e: Exception) {
+                                pendingBattery = null
+                                // Some devices hide the dialog; fall back to the list.
+                                try {
+                                    startActivity(Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS))
+                                } catch (_: Exception) {}
+                                result.success(false)
+                            }
                         }
                     }
                     else -> result.notImplemented()
@@ -74,6 +102,11 @@ class MainActivity : FlutterActivity() {
 
     @Deprecated("Uses the platform activity result API for a single request.")
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        if (requestCode == BATTERY) {
+            pendingBattery?.success(ignoringBattery())
+            pendingBattery = null
+            return
+        }
         if (requestCode != PICK_DIRECTORY) {
             super.onActivityResult(requestCode, resultCode, data)
             return
@@ -95,6 +128,11 @@ class MainActivity : FlutterActivity() {
         } else {
             result.success(path)
         }
+    }
+
+    private fun ignoringBattery(): Boolean {
+        val pm = getSystemService(POWER_SERVICE) as PowerManager
+        return pm.isIgnoringBatteryOptimizations(packageName)
     }
 
     /** Maps a document-tree URI from the system picker to a filesystem path. */
@@ -178,3 +216,4 @@ class MainActivity : FlutterActivity() {
 }
 
 private const val PICK_DIRECTORY = 4101
+private const val BATTERY = 4102

@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:clotho/core/git_service.dart';
 
 const defaultSettings = AppSettings(
-  autoFetchMinutes: 5,
   pullStrategy: PullStrategy.fastForwardOnly,
   pushAfterCommit: false,
   scanDepth: 3,
@@ -52,6 +51,9 @@ class FakeGitService implements GitService {
   Registry registry;
   final Map<String, RepoStatus> statuses = {};
   final Map<String, Object> fetchErrors = {};
+
+  /// Commits the remote gains on the next fetch of each repository.
+  final Map<String, int> incoming = {};
   final List<String> calls = [];
   final _watchers = <String, StreamController<void>>{};
 
@@ -65,7 +67,13 @@ class FakeGitService implements GitService {
     final repos = [...registry.repos];
     for (final p in paths) {
       if (repos.any((r) => r.path == p)) continue;
-      repos.add(RepoEntry(path: p, name: p.split('/').last, autoFetch: true));
+      repos.add(
+        RepoEntry(
+          path: p,
+          name: p.split('/').last,
+          fetchSchedule: fetchScheduleOff,
+        ),
+      );
       added.add(p);
     }
     registry = Registry(settings: registry.settings, repos: repos);
@@ -99,6 +107,39 @@ class FakeGitService implements GitService {
 
   @override
   Future<List<String>> scanForRepos(String root, int maxDepth) async => [];
+
+  @override
+  Future<List<String>> dueForFetch(DateTime now) async {
+    final secs = now.millisecondsSinceEpoch ~/ 1000;
+    return [
+      for (final r in registry.repos)
+        if (r.fetchSchedule.enabled &&
+            (r.lastAutoFetch == null ||
+                secs < r.lastAutoFetch! ||
+                secs - r.lastAutoFetch! >= r.fetchSchedule.interval.inSeconds))
+          r.path,
+    ];
+  }
+
+  @override
+  Future<void> markAutoFetched(String path, DateTime at) async {
+    registry = Registry(
+      settings: registry.settings,
+      repos: [
+        for (final r in registry.repos)
+          r.path == path
+              ? RepoEntry(
+                  path: r.path,
+                  name: r.name,
+                  pullStrategy: r.pullStrategy,
+                  pushAfterCommit: r.pushAfterCommit,
+                  fetchSchedule: r.fetchSchedule,
+                  lastAutoFetch: at.millisecondsSinceEpoch ~/ 1000,
+                )
+              : r,
+      ],
+    );
+  }
 
   @override
   Future<RepoStatus> status(String path) async =>
@@ -238,6 +279,16 @@ class FakeGitService implements GitService {
     calls.add('fetch $path');
     final err = fetchErrors[path];
     if (err != null) throw err;
+    final gain = incoming.remove(path) ?? 0;
+    if (gain > 0) {
+      final s = await status(path);
+      statuses[path] = statusWith(
+        path: path,
+        files: s.files,
+        ahead: s.ahead,
+        behind: s.behind + gain,
+      );
+    }
     return const FetchResult(remotes: ['origin'], receivedObjects: 0);
   }
 
