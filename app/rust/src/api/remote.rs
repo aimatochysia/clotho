@@ -53,7 +53,7 @@ pub struct FetchResult {
     pub received_objects: u32,
 }
 
-fn callbacks<'a>(auth: &'a AuthOptions, config: git2::Config) -> RemoteCallbacks<'a> {
+pub(crate) fn callbacks<'a>(auth: &'a AuthOptions, config: git2::Config) -> RemoteCallbacks<'a> {
     let mut cb = RemoteCallbacks::new();
     let attempts = Cell::new(0u32);
     let ssh_keys: Vec<PathBuf> = dirs::home_dir()
@@ -93,7 +93,8 @@ fn callbacks<'a>(auth: &'a AuthOptions, config: git2::Config) -> RemoteCallbacks
             }
         }
         if allowed.contains(CredentialType::USER_PASS_PLAINTEXT) {
-            if let (Some(token), 0..=1) = (&auth.token, n) {
+            // Only hand the GitHub token to GitHub, never to other hosts.
+            if let (Some(token), 0..=1, true) = (&auth.token, n, is_github_url(url)) {
                 let user = auth.username.as_deref().unwrap_or("x-access-token");
                 return Cred::userpass_plaintext(user, token);
             }
@@ -109,6 +110,17 @@ fn callbacks<'a>(auth: &'a AuthOptions, config: git2::Config) -> RemoteCallbacks
         ))
     });
     cb
+}
+
+/// True when `url` points at github.com over HTTPS.
+pub(crate) fn is_github_url(url: &str) -> bool {
+    match url::Url::parse(url) {
+        Ok(u) => {
+            u.scheme() == "https"
+                && matches!(u.host_str(), Some(h) if h.eq_ignore_ascii_case("github.com"))
+        }
+        Err(_) => false,
+    }
 }
 
 /// Fetches every remote (pruning deleted remote branches).
@@ -354,6 +366,16 @@ mod tests {
 
     fn no_auth() -> AuthOptions {
         AuthOptions::default()
+    }
+
+    #[test]
+    fn token_only_for_github() {
+        assert!(is_github_url("https://github.com/a/b.git"));
+        assert!(is_github_url("https://GitHub.com/a/b"));
+        assert!(!is_github_url("http://github.com/a/b"));
+        assert!(!is_github_url("https://github.com.evil.io/a/b"));
+        assert!(!is_github_url("https://gitlab.com/a/b"));
+        assert!(!is_github_url("git@github.com:a/b.git"));
     }
 
     #[test]

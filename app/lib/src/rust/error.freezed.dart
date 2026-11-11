@@ -56,7 +56,7 @@ extension CoreErrorPatterns on CoreError {
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( CoreError_NotARepository value)?  notARepository,TResult Function( CoreError_PathNotFound value)?  pathNotFound,TResult Function( CoreError_NothingToCommit value)?  nothingToCommit,TResult Function( CoreError_MissingIdentity value)?  missingIdentity,TResult Function( CoreError_Conflicts value)?  conflicts,TResult Function( CoreError_NotFastForward value)?  notFastForward,TResult Function( CoreError_DirtyWorktree value)?  dirtyWorktree,TResult Function( CoreError_BranchNotMerged value)?  branchNotMerged,TResult Function( CoreError_NoUpstream value)?  noUpstream,TResult Function( CoreError_DetachedHead value)?  detachedHead,TResult Function( CoreError_Auth value)?  auth,TResult Function( CoreError_PushRejected value)?  pushRejected,TResult Function( CoreError_InvalidInput value)?  invalidInput,TResult Function( CoreError_Io value)?  io,TResult Function( CoreError_Git value)?  git,required TResult orElse(),}){
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( CoreError_NotARepository value)?  notARepository,TResult Function( CoreError_PathNotFound value)?  pathNotFound,TResult Function( CoreError_NothingToCommit value)?  nothingToCommit,TResult Function( CoreError_MissingIdentity value)?  missingIdentity,TResult Function( CoreError_Conflicts value)?  conflicts,TResult Function( CoreError_NotFastForward value)?  notFastForward,TResult Function( CoreError_DirtyWorktree value)?  dirtyWorktree,TResult Function( CoreError_BranchNotMerged value)?  branchNotMerged,TResult Function( CoreError_NoUpstream value)?  noUpstream,TResult Function( CoreError_DetachedHead value)?  detachedHead,TResult Function( CoreError_Auth value)?  auth,TResult Function( CoreError_PushRejected value)?  pushRejected,TResult Function( CoreError_Network value)?  network,TResult Function( CoreError_GitHub value)?  gitHub,TResult Function( CoreError_InvalidInput value)?  invalidInput,TResult Function( CoreError_Io value)?  io,TResult Function( CoreError_Git value)?  git,required TResult orElse(),}){
 final _that = this;
 switch (_that) {
 case CoreError_NotARepository() when notARepository != null:
@@ -71,7 +71,9 @@ return branchNotMerged(_that);case CoreError_NoUpstream() when noUpstream != nul
 return noUpstream(_that);case CoreError_DetachedHead() when detachedHead != null:
 return detachedHead(_that);case CoreError_Auth() when auth != null:
 return auth(_that);case CoreError_PushRejected() when pushRejected != null:
-return pushRejected(_that);case CoreError_InvalidInput() when invalidInput != null:
+return pushRejected(_that);case CoreError_Network() when network != null:
+return network(_that);case CoreError_GitHub() when gitHub != null:
+return gitHub(_that);case CoreError_InvalidInput() when invalidInput != null:
 return invalidInput(_that);case CoreError_Io() when io != null:
 return io(_that);case CoreError_Git() when git != null:
 return git(_that);case _:
@@ -92,7 +94,7 @@ return git(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( CoreError_NotARepository value)  notARepository,required TResult Function( CoreError_PathNotFound value)  pathNotFound,required TResult Function( CoreError_NothingToCommit value)  nothingToCommit,required TResult Function( CoreError_MissingIdentity value)  missingIdentity,required TResult Function( CoreError_Conflicts value)  conflicts,required TResult Function( CoreError_NotFastForward value)  notFastForward,required TResult Function( CoreError_DirtyWorktree value)  dirtyWorktree,required TResult Function( CoreError_BranchNotMerged value)  branchNotMerged,required TResult Function( CoreError_NoUpstream value)  noUpstream,required TResult Function( CoreError_DetachedHead value)  detachedHead,required TResult Function( CoreError_Auth value)  auth,required TResult Function( CoreError_PushRejected value)  pushRejected,required TResult Function( CoreError_InvalidInput value)  invalidInput,required TResult Function( CoreError_Io value)  io,required TResult Function( CoreError_Git value)  git,}){
+@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( CoreError_NotARepository value)  notARepository,required TResult Function( CoreError_PathNotFound value)  pathNotFound,required TResult Function( CoreError_NothingToCommit value)  nothingToCommit,required TResult Function( CoreError_MissingIdentity value)  missingIdentity,required TResult Function( CoreError_Conflicts value)  conflicts,required TResult Function( CoreError_NotFastForward value)  notFastForward,required TResult Function( CoreError_DirtyWorktree value)  dirtyWorktree,required TResult Function( CoreError_BranchNotMerged value)  branchNotMerged,required TResult Function( CoreError_NoUpstream value)  noUpstream,required TResult Function( CoreError_DetachedHead value)  detachedHead,required TResult Function( CoreError_Auth value)  auth,required TResult Function( CoreError_PushRejected value)  pushRejected,required TResult Function( CoreError_Network value)  network,required TResult Function( CoreError_GitHub value)  gitHub,required TResult Function( CoreError_InvalidInput value)  invalidInput,required TResult Function( CoreError_Io value)  io,required TResult Function( CoreError_Git value)  git,}){
 final _that = this;
 switch (_that) {
 case CoreError_NotARepository():
@@ -107,7 +109,9 @@ return branchNotMerged(_that);case CoreError_NoUpstream():
 return noUpstream(_that);case CoreError_DetachedHead():
 return detachedHead(_that);case CoreError_Auth():
 return auth(_that);case CoreError_PushRejected():
-return pushRejected(_that);case CoreError_InvalidInput():
+return pushRejected(_that);case CoreError_Network():
+return network(_that);case CoreError_GitHub():
+return gitHub(_that);case CoreError_InvalidInput():
 return invalidInput(_that);case CoreError_Io():
 return io(_that);case CoreError_Git():
 return git(_that);}
@@ -124,7 +128,7 @@ return git(_that);}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( CoreError_NotARepository value)?  notARepository,TResult? Function( CoreError_PathNotFound value)?  pathNotFound,TResult? Function( CoreError_NothingToCommit value)?  nothingToCommit,TResult? Function( CoreError_MissingIdentity value)?  missingIdentity,TResult? Function( CoreError_Conflicts value)?  conflicts,TResult? Function( CoreError_NotFastForward value)?  notFastForward,TResult? Function( CoreError_DirtyWorktree value)?  dirtyWorktree,TResult? Function( CoreError_BranchNotMerged value)?  branchNotMerged,TResult? Function( CoreError_NoUpstream value)?  noUpstream,TResult? Function( CoreError_DetachedHead value)?  detachedHead,TResult? Function( CoreError_Auth value)?  auth,TResult? Function( CoreError_PushRejected value)?  pushRejected,TResult? Function( CoreError_InvalidInput value)?  invalidInput,TResult? Function( CoreError_Io value)?  io,TResult? Function( CoreError_Git value)?  git,}){
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( CoreError_NotARepository value)?  notARepository,TResult? Function( CoreError_PathNotFound value)?  pathNotFound,TResult? Function( CoreError_NothingToCommit value)?  nothingToCommit,TResult? Function( CoreError_MissingIdentity value)?  missingIdentity,TResult? Function( CoreError_Conflicts value)?  conflicts,TResult? Function( CoreError_NotFastForward value)?  notFastForward,TResult? Function( CoreError_DirtyWorktree value)?  dirtyWorktree,TResult? Function( CoreError_BranchNotMerged value)?  branchNotMerged,TResult? Function( CoreError_NoUpstream value)?  noUpstream,TResult? Function( CoreError_DetachedHead value)?  detachedHead,TResult? Function( CoreError_Auth value)?  auth,TResult? Function( CoreError_PushRejected value)?  pushRejected,TResult? Function( CoreError_Network value)?  network,TResult? Function( CoreError_GitHub value)?  gitHub,TResult? Function( CoreError_InvalidInput value)?  invalidInput,TResult? Function( CoreError_Io value)?  io,TResult? Function( CoreError_Git value)?  git,}){
 final _that = this;
 switch (_that) {
 case CoreError_NotARepository() when notARepository != null:
@@ -139,7 +143,9 @@ return branchNotMerged(_that);case CoreError_NoUpstream() when noUpstream != nul
 return noUpstream(_that);case CoreError_DetachedHead() when detachedHead != null:
 return detachedHead(_that);case CoreError_Auth() when auth != null:
 return auth(_that);case CoreError_PushRejected() when pushRejected != null:
-return pushRejected(_that);case CoreError_InvalidInput() when invalidInput != null:
+return pushRejected(_that);case CoreError_Network() when network != null:
+return network(_that);case CoreError_GitHub() when gitHub != null:
+return gitHub(_that);case CoreError_InvalidInput() when invalidInput != null:
 return invalidInput(_that);case CoreError_Io() when io != null:
 return io(_that);case CoreError_Git() when git != null:
 return git(_that);case _:
@@ -159,7 +165,7 @@ return git(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function( String path)?  notARepository,TResult Function( String path)?  pathNotFound,TResult Function()?  nothingToCommit,TResult Function()?  missingIdentity,TResult Function( List<String> files)?  conflicts,TResult Function()?  notFastForward,TResult Function( String message)?  dirtyWorktree,TResult Function( String name)?  branchNotMerged,TResult Function( String branch)?  noUpstream,TResult Function()?  detachedHead,TResult Function( String message)?  auth,TResult Function( String message)?  pushRejected,TResult Function( String message)?  invalidInput,TResult Function( String message)?  io,TResult Function( String message)?  git,required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function( String path)?  notARepository,TResult Function( String path)?  pathNotFound,TResult Function()?  nothingToCommit,TResult Function()?  missingIdentity,TResult Function( List<String> files)?  conflicts,TResult Function()?  notFastForward,TResult Function( String message)?  dirtyWorktree,TResult Function( String name)?  branchNotMerged,TResult Function( String branch)?  noUpstream,TResult Function()?  detachedHead,TResult Function( String message)?  auth,TResult Function( String message)?  pushRejected,TResult Function( String message)?  network,TResult Function( int status,  String message)?  gitHub,TResult Function( String message)?  invalidInput,TResult Function( String message)?  io,TResult Function( String message)?  git,required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case CoreError_NotARepository() when notARepository != null:
 return notARepository(_that.path);case CoreError_PathNotFound() when pathNotFound != null:
@@ -173,7 +179,9 @@ return branchNotMerged(_that.name);case CoreError_NoUpstream() when noUpstream !
 return noUpstream(_that.branch);case CoreError_DetachedHead() when detachedHead != null:
 return detachedHead();case CoreError_Auth() when auth != null:
 return auth(_that.message);case CoreError_PushRejected() when pushRejected != null:
-return pushRejected(_that.message);case CoreError_InvalidInput() when invalidInput != null:
+return pushRejected(_that.message);case CoreError_Network() when network != null:
+return network(_that.message);case CoreError_GitHub() when gitHub != null:
+return gitHub(_that.status,_that.message);case CoreError_InvalidInput() when invalidInput != null:
 return invalidInput(_that.message);case CoreError_Io() when io != null:
 return io(_that.message);case CoreError_Git() when git != null:
 return git(_that.message);case _:
@@ -194,7 +202,7 @@ return git(_that.message);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function( String path)  notARepository,required TResult Function( String path)  pathNotFound,required TResult Function()  nothingToCommit,required TResult Function()  missingIdentity,required TResult Function( List<String> files)  conflicts,required TResult Function()  notFastForward,required TResult Function( String message)  dirtyWorktree,required TResult Function( String name)  branchNotMerged,required TResult Function( String branch)  noUpstream,required TResult Function()  detachedHead,required TResult Function( String message)  auth,required TResult Function( String message)  pushRejected,required TResult Function( String message)  invalidInput,required TResult Function( String message)  io,required TResult Function( String message)  git,}) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function( String path)  notARepository,required TResult Function( String path)  pathNotFound,required TResult Function()  nothingToCommit,required TResult Function()  missingIdentity,required TResult Function( List<String> files)  conflicts,required TResult Function()  notFastForward,required TResult Function( String message)  dirtyWorktree,required TResult Function( String name)  branchNotMerged,required TResult Function( String branch)  noUpstream,required TResult Function()  detachedHead,required TResult Function( String message)  auth,required TResult Function( String message)  pushRejected,required TResult Function( String message)  network,required TResult Function( int status,  String message)  gitHub,required TResult Function( String message)  invalidInput,required TResult Function( String message)  io,required TResult Function( String message)  git,}) {final _that = this;
 switch (_that) {
 case CoreError_NotARepository():
 return notARepository(_that.path);case CoreError_PathNotFound():
@@ -208,7 +216,9 @@ return branchNotMerged(_that.name);case CoreError_NoUpstream():
 return noUpstream(_that.branch);case CoreError_DetachedHead():
 return detachedHead();case CoreError_Auth():
 return auth(_that.message);case CoreError_PushRejected():
-return pushRejected(_that.message);case CoreError_InvalidInput():
+return pushRejected(_that.message);case CoreError_Network():
+return network(_that.message);case CoreError_GitHub():
+return gitHub(_that.status,_that.message);case CoreError_InvalidInput():
 return invalidInput(_that.message);case CoreError_Io():
 return io(_that.message);case CoreError_Git():
 return git(_that.message);}
@@ -225,7 +235,7 @@ return git(_that.message);}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function( String path)?  notARepository,TResult? Function( String path)?  pathNotFound,TResult? Function()?  nothingToCommit,TResult? Function()?  missingIdentity,TResult? Function( List<String> files)?  conflicts,TResult? Function()?  notFastForward,TResult? Function( String message)?  dirtyWorktree,TResult? Function( String name)?  branchNotMerged,TResult? Function( String branch)?  noUpstream,TResult? Function()?  detachedHead,TResult? Function( String message)?  auth,TResult? Function( String message)?  pushRejected,TResult? Function( String message)?  invalidInput,TResult? Function( String message)?  io,TResult? Function( String message)?  git,}) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function( String path)?  notARepository,TResult? Function( String path)?  pathNotFound,TResult? Function()?  nothingToCommit,TResult? Function()?  missingIdentity,TResult? Function( List<String> files)?  conflicts,TResult? Function()?  notFastForward,TResult? Function( String message)?  dirtyWorktree,TResult? Function( String name)?  branchNotMerged,TResult? Function( String branch)?  noUpstream,TResult? Function()?  detachedHead,TResult? Function( String message)?  auth,TResult? Function( String message)?  pushRejected,TResult? Function( String message)?  network,TResult? Function( int status,  String message)?  gitHub,TResult? Function( String message)?  invalidInput,TResult? Function( String message)?  io,TResult? Function( String message)?  git,}) {final _that = this;
 switch (_that) {
 case CoreError_NotARepository() when notARepository != null:
 return notARepository(_that.path);case CoreError_PathNotFound() when pathNotFound != null:
@@ -239,7 +249,9 @@ return branchNotMerged(_that.name);case CoreError_NoUpstream() when noUpstream !
 return noUpstream(_that.branch);case CoreError_DetachedHead() when detachedHead != null:
 return detachedHead();case CoreError_Auth() when auth != null:
 return auth(_that.message);case CoreError_PushRejected() when pushRejected != null:
-return pushRejected(_that.message);case CoreError_InvalidInput() when invalidInput != null:
+return pushRejected(_that.message);case CoreError_Network() when network != null:
+return network(_that.message);case CoreError_GitHub() when gitHub != null:
+return gitHub(_that.status,_that.message);case CoreError_InvalidInput() when invalidInput != null:
 return invalidInput(_that.message);case CoreError_Io() when io != null:
 return io(_that.message);case CoreError_Git() when git != null:
 return git(_that.message);case _:
@@ -921,6 +933,144 @@ class _$CoreError_PushRejectedCopyWithImpl<$Res>
 @pragma('vm:prefer-inline') $Res call({Object? message = null,}) {
   return _then(CoreError_PushRejected(
 message: null == message ? _self.message : message // ignore: cast_nullable_to_non_nullable
+as String,
+  ));
+}
+
+
+}
+
+/// @nodoc
+
+
+class CoreError_Network extends CoreError {
+  const CoreError_Network({required this.message}): super._();
+  
+
+ final  String message;
+
+/// Create a copy of CoreError
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$CoreError_NetworkCopyWith<CoreError_Network> get copyWith => _$CoreError_NetworkCopyWithImpl<CoreError_Network>(this, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is CoreError_Network&&(identical(other.message, message) || other.message == message));
+}
+
+
+@override
+int get hashCode {
+    return Object.hash(runtimeType,message);
+}
+
+@override
+String toString() {
+    return 'CoreError.network(message: $message)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $CoreError_NetworkCopyWith<$Res> implements $CoreErrorCopyWith<$Res> {
+  factory $CoreError_NetworkCopyWith(CoreError_Network value, $Res Function(CoreError_Network) _then) = _$CoreError_NetworkCopyWithImpl;
+@useResult
+$Res call({
+ String message
+});
+
+
+
+
+}
+/// @nodoc
+class _$CoreError_NetworkCopyWithImpl<$Res>
+    implements $CoreError_NetworkCopyWith<$Res> {
+  _$CoreError_NetworkCopyWithImpl(this._self, this._then);
+
+  final CoreError_Network _self;
+  final $Res Function(CoreError_Network) _then;
+
+/// Create a copy of CoreError
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') $Res call({Object? message = null,}) {
+  return _then(CoreError_Network(
+message: null == message ? _self.message : message // ignore: cast_nullable_to_non_nullable
+as String,
+  ));
+}
+
+
+}
+
+/// @nodoc
+
+
+class CoreError_GitHub extends CoreError {
+  const CoreError_GitHub({required this.status, required this.message}): super._();
+  
+
+ final  int status;
+ final  String message;
+
+/// Create a copy of CoreError
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$CoreError_GitHubCopyWith<CoreError_GitHub> get copyWith => _$CoreError_GitHubCopyWithImpl<CoreError_GitHub>(this, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is CoreError_GitHub&&(identical(other.status, status) || other.status == status)&&(identical(other.message, message) || other.message == message));
+}
+
+
+@override
+int get hashCode {
+    return Object.hash(runtimeType,status,message);
+}
+
+@override
+String toString() {
+    return 'CoreError.gitHub(status: $status, message: $message)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $CoreError_GitHubCopyWith<$Res> implements $CoreErrorCopyWith<$Res> {
+  factory $CoreError_GitHubCopyWith(CoreError_GitHub value, $Res Function(CoreError_GitHub) _then) = _$CoreError_GitHubCopyWithImpl;
+@useResult
+$Res call({
+ int status, String message
+});
+
+
+
+
+}
+/// @nodoc
+class _$CoreError_GitHubCopyWithImpl<$Res>
+    implements $CoreError_GitHubCopyWith<$Res> {
+  _$CoreError_GitHubCopyWithImpl(this._self, this._then);
+
+  final CoreError_GitHub _self;
+  final $Res Function(CoreError_GitHub) _then;
+
+/// Create a copy of CoreError
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') $Res call({Object? status = null,Object? message = null,}) {
+  return _then(CoreError_GitHub(
+status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
+as int,message: null == message ? _self.message : message // ignore: cast_nullable_to_non_nullable
 as String,
   ));
 }

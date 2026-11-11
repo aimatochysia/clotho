@@ -27,6 +27,14 @@ String describeError(Object error) {
       CoreError_Auth(:final message) =>
         'Sign-in to the remote failed: $message',
       CoreError_PushRejected(:final message) => 'Push rejected: $message',
+      CoreError_Network(:final message) =>
+        'Could not reach the server. Check your connection. ($message)',
+      CoreError_GitHub(:final status, :final message) => switch (status) {
+        404 =>
+          'GitHub could not find that, or your account has no access to it. '
+              'Sign in to see private repositories.',
+        _ => 'GitHub: ${_capitalize(message)}',
+      },
       CoreError_InvalidInput(:final message) => _capitalize(message),
       CoreError_Io(:final message) => _capitalize(message),
       CoreError_Git(:final message) => 'Git error: $message',

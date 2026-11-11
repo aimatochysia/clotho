@@ -20,6 +20,8 @@ pub struct AppSettings {
     pub scan_depth: u32,
     /// Check GitHub for a newer Clotho release on start.
     pub check_updates: bool,
+    /// Folder the clone dialog suggests (the last one used).
+    pub clone_dir: Option<String>,
 }
 
 impl Default for AppSettings {
@@ -30,6 +32,7 @@ impl Default for AppSettings {
             push_after_commit: false,
             scan_depth: 3,
             check_updates: true,
+            clone_dir: None,
         }
     }
 }

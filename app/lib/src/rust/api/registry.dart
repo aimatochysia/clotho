@@ -94,12 +94,16 @@ class AppSettings {
   /// Check GitHub for a newer Clotho release on start.
   final bool checkUpdates;
 
+  /// Folder the clone dialog suggests (the last one used).
+  final String? cloneDir;
+
   const AppSettings({
     required this.autoFetchMinutes,
     required this.pullStrategy,
     required this.pushAfterCommit,
     required this.scanDepth,
     required this.checkUpdates,
+    this.cloneDir,
   });
 
   static Future<AppSettings> default_() =>
@@ -111,7 +115,8 @@ class AppSettings {
       pullStrategy.hashCode ^
       pushAfterCommit.hashCode ^
       scanDepth.hashCode ^
-      checkUpdates.hashCode;
+      checkUpdates.hashCode ^
+      cloneDir.hashCode;
 
   @override
   bool operator ==(Object other) =>
@@ -122,7 +127,8 @@ class AppSettings {
           pullStrategy == other.pullStrategy &&
           pushAfterCommit == other.pushAfterCommit &&
           scanDepth == other.scanDepth &&
-          checkUpdates == other.checkUpdates;
+          checkUpdates == other.checkUpdates &&
+          cloneDir == other.cloneDir;
 }
 
 class Registry {

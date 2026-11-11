@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 
 import '../core/git_service.dart';
+import '../core/github_service.dart';
+import '../state/github_scope.dart';
 import '../state/app_controller.dart';
 import '../state/repo_controller.dart';
 import 'branches_tab.dart';
 import 'changes_tab.dart';
+import 'github/github_tab.dart';
 import 'dashboard_page.dart' show pullMessage;
 import 'history_tab.dart';
 import 'settings_page.dart';
@@ -25,10 +28,25 @@ class _RepoPageState extends State<RepoPage> {
     path: widget.path,
   );
 
+  GitHubRemote? _remote;
+
   @override
   void initState() {
     super.initState();
     repo.open();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_remote == null) {
+      GitHubScope.of(context).github
+          .remoteOf(widget.path)
+          .then((r) {
+            if (mounted && r != null) setState(() => _remote = r);
+          })
+          .catchError((_) {});
+    }
   }
 
   @override
@@ -44,8 +62,10 @@ class _RepoPageState extends State<RepoPage> {
       builder: (context, _) {
         final s = repo.status;
         final entry = widget.app.entryFor(widget.path);
+        final remote = _remote;
         return DefaultTabController(
-          length: 3,
+          key: ValueKey(remote != null),
+          length: remote != null ? 4 : 3,
           child: Scaffold(
             appBar: AppBar(
               title: Column(
@@ -119,6 +139,7 @@ class _RepoPageState extends State<RepoPage> {
                   ),
                   const Tab(text: 'Branches'),
                   const Tab(text: 'History'),
+                  if (remote != null) const Tab(text: 'GitHub'),
                 ],
               ),
             ),
@@ -129,6 +150,8 @@ class _RepoPageState extends State<RepoPage> {
                       ChangesTab(repo: repo),
                       BranchesTab(repo: repo),
                       HistoryTab(repo: repo),
+                      if (remote != null)
+                        GitHubTab(remote: remote, branch: s.branch),
                     ],
                   ),
           ),

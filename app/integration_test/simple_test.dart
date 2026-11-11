@@ -1,6 +1,10 @@
 import 'dart:io';
 
 import 'package:clotho/core/git_service.dart';
+import 'package:clotho/core/github_service.dart';
+import 'package:clotho/core/token_store.dart';
+import 'package:clotho/state/auth_controller.dart';
+import 'package:clotho/state/github_scope.dart';
 import 'package:clotho/src/rust/frb_generated.dart';
 import 'package:clotho/state/app_controller.dart';
 import 'package:clotho/ui/repo_page.dart';
@@ -34,9 +38,14 @@ void main() {
     final path = report.added.single;
 
     await tester.binding.setSurfaceSize(const Size(1400, 900));
+    const gh = RustGitHubService();
     await tester.pumpWidget(
-      MaterialApp(
-        home: RepoPage(app: app, path: path),
+      GitHubScope(
+        auth: AuthController(github: gh, store: MemoryTokenStore()),
+        github: gh,
+        child: MaterialApp(
+          home: RepoPage(app: app, path: path),
+        ),
       ),
     );
     await tester.pumpAndSettle();
@@ -59,5 +68,31 @@ void main() {
 
     app.dispose();
     await tmp.delete(recursive: true);
+  });
+
+  test('clone a repository with progress through the Rust core', () async {
+    final tmp = await Directory.systemTemp.createTemp('clotho_clone');
+    final src = Directory('${tmp.path}/src')..createSync();
+    await git(src.path, ['init', '-q', '-b', 'main']);
+    await git(src.path, ['config', 'user.name', 'IT']);
+    await git(src.path, ['config', 'user.email', 'it@example.com']);
+    File('${src.path}/a.txt').writeAsStringSync('a\n');
+    await git(src.path, ['add', '.']);
+    await git(src.path, ['commit', '-q', '-m', 'init']);
+
+    const gh = RustGitHubService();
+    final events = await gh.clone(src.path, '${tmp.path}/copy', null).toList();
+    final done = events.last as CloneProgress_Done;
+    expect(File('${done.path}/a.txt').existsSync(), isTrue);
+    expect(await gh.remoteOf(done.path), isNull);
+
+    await git(done.path, [
+      'remote',
+      'set-url',
+      'origin',
+      'https://github.com/octo/demo.git',
+    ]);
+    final remote = await gh.remoteOf(done.path);
+    expect((remote!.owner, remote.repo), ('octo', 'demo'));
   });
 }

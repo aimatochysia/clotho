@@ -1,6 +1,7 @@
 pub mod app;
 pub mod branches;
 pub mod changes;
+pub mod github;
 pub mod history;
 pub mod registry;
 pub mod remote;

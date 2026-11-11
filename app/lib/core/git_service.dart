@@ -32,6 +32,24 @@ export '../src/rust/api/remote.dart'
 export '../src/rust/api/repo.dart'
     show ChangeKind, FileChange, RepoState, RepoStatus;
 
+extension AppSettingsCopy on AppSettings {
+  AppSettings copyWith({
+    int? autoFetchMinutes,
+    PullStrategy? pullStrategy,
+    bool? pushAfterCommit,
+    int? scanDepth,
+    bool? checkUpdates,
+    String? cloneDir,
+  }) => AppSettings(
+    autoFetchMinutes: autoFetchMinutes ?? this.autoFetchMinutes,
+    pullStrategy: pullStrategy ?? this.pullStrategy,
+    pushAfterCommit: pushAfterCommit ?? this.pushAfterCommit,
+    scanDepth: scanDepth ?? this.scanDepth,
+    checkUpdates: checkUpdates ?? this.checkUpdates,
+    cloneDir: cloneDir ?? this.cloneDir,
+  );
+}
+
 /// Everything the UI needs from the Rust core. Widgets and controllers depend
 /// on this interface, so tests can swap in a fake without the native library.
 abstract interface class GitService {

@@ -28,6 +28,10 @@ pub enum CoreError {
     Auth { message: String },
     #[error("push rejected: {message}")]
     PushRejected { message: String },
+    #[error("network error: {message}")]
+    Network { message: String },
+    #[error("GitHub returned {status}: {message}")]
+    GitHub { status: u16, message: String },
     #[error("{message}")]
     InvalidInput { message: String },
     #[error("file error: {message}")]

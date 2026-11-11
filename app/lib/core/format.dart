@@ -9,3 +9,10 @@ String relativeTime(int epochSeconds, {DateTime? now}) {
   String two(int n) => n.toString().padLeft(2, '0');
   return '${t.year}-${two(t.month)}-${two(t.day)}';
 }
+
+/// [relativeTime] for an ISO 8601 string from the GitHub API.
+String relativeIso(String? iso, {DateTime? now}) {
+  final t = iso == null ? null : DateTime.tryParse(iso);
+  if (t == null) return '';
+  return relativeTime(t.millisecondsSinceEpoch ~/ 1000, now: now);
+}
