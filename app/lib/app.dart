@@ -1,19 +1,12 @@
 import 'package:flutter/material.dart';
 
-import 'home/home_page.dart';
-import 'home/repo_inspector.dart';
+import 'state/app_controller.dart';
+import 'ui/dashboard_page.dart';
 
 class ClothoApp extends StatelessWidget {
-  const ClothoApp({
-    super.key,
-    required this.coreVersion,
-    required this.libgit2Version,
-    required this.inspector,
-  });
+  const ClothoApp({super.key, required this.app});
 
-  final String coreVersion;
-  final String libgit2Version;
-  final RepoInspector inspector;
+  final AppController app;
 
   @override
   Widget build(BuildContext context) {
@@ -27,11 +20,7 @@ class ClothoApp extends StatelessWidget {
         brightness: Brightness.dark,
         useMaterial3: true,
       ),
-      home: HomePage(
-        coreVersion: coreVersion,
-        libgit2Version: libgit2Version,
-        inspector: inspector,
-      ),
+      home: DashboardPage(app: app),
     );
   }
 }

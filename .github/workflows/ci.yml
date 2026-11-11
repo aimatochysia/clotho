@@ -52,7 +52,7 @@ jobs:
           workspaces: app/rust
       - run: flutter pub get
       - name: Check formatting (hand-written Dart only)
-        run: dart format --output=none --set-exit-if-changed lib/main.dart lib/app.dart lib/home test integration_test
+        run: dart format --output=none --set-exit-if-changed lib/main.dart lib/app.dart lib/core lib/state lib/ui test integration_test
       - run: flutter analyze
       - run: flutter test
       - run: flutter build linux --release

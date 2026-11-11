@@ -1,2 +1,8 @@
 pub mod app;
+pub mod branches;
+pub mod changes;
+pub mod history;
+pub mod registry;
+pub mod remote;
 pub mod repo;
+pub mod watch;

@@ -4,24 +4,36 @@
 // ignore_for_file: invalid_use_of_internal_member, unused_import, unnecessary_import
 
 import 'frb_generated.dart';
+
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 import 'package:freezed_annotation/freezed_annotation.dart' hide protected;
 part 'error.freezed.dart';
 
-            
+@freezed
+sealed class CoreError with _$CoreError implements FrbException {
+  const CoreError._();
 
-            
-
-            @freezed
-                sealed class CoreError with _$CoreError implements FrbException {
-                    const CoreError._();
-
-                     const factory CoreError.notARepository({   required String path , }) = CoreError_NotARepository;
- const factory CoreError.pathNotFound({   required String path , }) = CoreError_PathNotFound;
- const factory CoreError.git({   required String message , }) = CoreError_Git;
-
-                    
-
-                    
-                }
-            
+  const factory CoreError.notARepository({required String path}) =
+      CoreError_NotARepository;
+  const factory CoreError.pathNotFound({required String path}) =
+      CoreError_PathNotFound;
+  const factory CoreError.nothingToCommit() = CoreError_NothingToCommit;
+  const factory CoreError.missingIdentity() = CoreError_MissingIdentity;
+  const factory CoreError.conflicts({required List<String> files}) =
+      CoreError_Conflicts;
+  const factory CoreError.notFastForward() = CoreError_NotFastForward;
+  const factory CoreError.dirtyWorktree({required String message}) =
+      CoreError_DirtyWorktree;
+  const factory CoreError.branchNotMerged({required String name}) =
+      CoreError_BranchNotMerged;
+  const factory CoreError.noUpstream({required String branch}) =
+      CoreError_NoUpstream;
+  const factory CoreError.detachedHead() = CoreError_DetachedHead;
+  const factory CoreError.auth({required String message}) = CoreError_Auth;
+  const factory CoreError.pushRejected({required String message}) =
+      CoreError_PushRejected;
+  const factory CoreError.invalidInput({required String message}) =
+      CoreError_InvalidInput;
+  const factory CoreError.io({required String message}) = CoreError_Io;
+  const factory CoreError.git({required String message}) = CoreError_Git;
+}

@@ -3,96 +3,592 @@
 
 // ignore_for_file: unused_import, unused_element, unnecessary_import, duplicate_ignore, invalid_use_of_internal_member, annotate_overrides, non_constant_identifier_names, curly_braces_in_flow_control_structures, prefer_const_literals_to_create_immutables, unused_field
 
-
 // Static analysis wrongly picks the IO variant, thus ignore this
 // ignore_for_file: argument_type_not_assignable
 
 import 'api/app.dart';
+import 'api/branches.dart';
+import 'api/changes.dart';
+import 'api/history.dart';
+import 'api/registry.dart';
+import 'api/remote.dart';
 import 'api/repo.dart';
+import 'api/watch.dart';
+
 import 'dart:async';
 import 'dart:convert';
+
 import 'error.dart';
 import 'frb_generated.dart';
+
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated_web.dart';
 
+abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
+  RustLibApiImplPlatform({
+    required super.handler,
+    required super.wire,
+    required super.generalizedFrbRustBinding,
+    required super.portManager,
+  });
 
+  @protected
+  AnyhowException dco_decode_AnyhowException(dynamic raw);
 
+  @protected
+  RustStreamSink<int> dco_decode_StreamSink_u_32_Sse(dynamic raw);
 
-                abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
-                  RustLibApiImplPlatform({
-                    required super.handler,
-                    required super.wire,
-                    required super.generalizedFrbRustBinding,
-                    required super.portManager,
-                  });
+  @protected
+  String dco_decode_String(dynamic raw);
 
-                  
+  @protected
+  AddReport dco_decode_add_report(dynamic raw);
 
-                  @protected String dco_decode_String(dynamic raw);
+  @protected
+  AppSettings dco_decode_app_settings(dynamic raw);
 
-@protected bool dco_decode_bool(dynamic raw);
+  @protected
+  AuthOptions dco_decode_auth_options(dynamic raw);
 
-@protected CoreError dco_decode_core_error(dynamic raw);
+  @protected
+  bool dco_decode_bool(dynamic raw);
 
-@protected Uint8List dco_decode_list_prim_u_8_strict(dynamic raw);
+  @protected
+  AppSettings dco_decode_box_autoadd_app_settings(dynamic raw);
 
-@protected String? dco_decode_opt_String(dynamic raw);
+  @protected
+  AuthOptions dco_decode_box_autoadd_auth_options(dynamic raw);
 
-@protected RepoInfo dco_decode_repo_info(dynamic raw);
+  @protected
+  bool dco_decode_box_autoadd_bool(dynamic raw);
 
-@protected int dco_decode_u_8(dynamic raw);
+  @protected
+  ChangeKind dco_decode_box_autoadd_change_kind(dynamic raw);
 
-@protected void dco_decode_unit(dynamic raw);
+  @protected
+  PullStrategy dco_decode_box_autoadd_pull_strategy(dynamic raw);
 
-@protected String sse_decode_String(SseDeserializer deserializer);
+  @protected
+  RepoEntry dco_decode_box_autoadd_repo_entry(dynamic raw);
 
-@protected bool sse_decode_bool(SseDeserializer deserializer);
+  @protected
+  int dco_decode_box_autoadd_u_32(dynamic raw);
 
-@protected CoreError sse_decode_core_error(SseDeserializer deserializer);
+  @protected
+  BranchInfo dco_decode_branch_info(dynamic raw);
 
-@protected Uint8List sse_decode_list_prim_u_8_strict(SseDeserializer deserializer);
+  @protected
+  ChangeKind dco_decode_change_kind(dynamic raw);
 
-@protected String? sse_decode_opt_String(SseDeserializer deserializer);
+  @protected
+  CommitInfo dco_decode_commit_info(dynamic raw);
 
-@protected RepoInfo sse_decode_repo_info(SseDeserializer deserializer);
+  @protected
+  CommitResult dco_decode_commit_result(dynamic raw);
 
-@protected int sse_decode_u_8(SseDeserializer deserializer);
+  @protected
+  CoreError dco_decode_core_error(dynamic raw);
 
-@protected void sse_decode_unit(SseDeserializer deserializer);
+  @protected
+  DiffHunk dco_decode_diff_hunk(dynamic raw);
 
-@protected int sse_decode_i_32(SseDeserializer deserializer);
+  @protected
+  DiffLine dco_decode_diff_line(dynamic raw);
 
-@protected void sse_encode_String(String self, SseSerializer serializer);
+  @protected
+  FetchResult dco_decode_fetch_result(dynamic raw);
 
-@protected void sse_encode_bool(bool self, SseSerializer serializer);
+  @protected
+  FileChange dco_decode_file_change(dynamic raw);
 
-@protected void sse_encode_core_error(CoreError self, SseSerializer serializer);
+  @protected
+  FileDiff dco_decode_file_diff(dynamic raw);
 
-@protected void sse_encode_list_prim_u_8_strict(Uint8List self, SseSerializer serializer);
+  @protected
+  int dco_decode_i_32(dynamic raw);
 
-@protected void sse_encode_opt_String(String? self, SseSerializer serializer);
+  @protected
+  PlatformInt64 dco_decode_i_64(dynamic raw);
 
-@protected void sse_encode_repo_info(RepoInfo self, SseSerializer serializer);
+  @protected
+  LineKind dco_decode_line_kind(dynamic raw);
 
-@protected void sse_encode_u_8(int self, SseSerializer serializer);
+  @protected
+  List<String> dco_decode_list_String(dynamic raw);
 
-@protected void sse_encode_unit(void self, SseSerializer serializer);
+  @protected
+  List<BranchInfo> dco_decode_list_branch_info(dynamic raw);
 
-@protected void sse_encode_i_32(int self, SseSerializer serializer);
-                }
-                
+  @protected
+  List<CommitInfo> dco_decode_list_commit_info(dynamic raw);
 
+  @protected
+  List<DiffHunk> dco_decode_list_diff_hunk(dynamic raw);
+
+  @protected
+  List<DiffLine> dco_decode_list_diff_line(dynamic raw);
+
+  @protected
+  List<FileChange> dco_decode_list_file_change(dynamic raw);
+
+  @protected
+  List<FileDiff> dco_decode_list_file_diff(dynamic raw);
+
+  @protected
+  Uint8List dco_decode_list_prim_u_8_strict(dynamic raw);
+
+  @protected
+  List<RepoEntry> dco_decode_list_repo_entry(dynamic raw);
+
+  @protected
+  List<SkippedPath> dco_decode_list_skipped_path(dynamic raw);
+
+  @protected
+  String? dco_decode_opt_String(dynamic raw);
+
+  @protected
+  bool? dco_decode_opt_box_autoadd_bool(dynamic raw);
+
+  @protected
+  ChangeKind? dco_decode_opt_box_autoadd_change_kind(dynamic raw);
+
+  @protected
+  PullStrategy? dco_decode_opt_box_autoadd_pull_strategy(dynamic raw);
+
+  @protected
+  int? dco_decode_opt_box_autoadd_u_32(dynamic raw);
+
+  @protected
+  PullOutcome dco_decode_pull_outcome(dynamic raw);
+
+  @protected
+  PullResult dco_decode_pull_result(dynamic raw);
+
+  @protected
+  PullStrategy dco_decode_pull_strategy(dynamic raw);
+
+  @protected
+  PushResult dco_decode_push_result(dynamic raw);
+
+  @protected
+  Registry dco_decode_registry(dynamic raw);
+
+  @protected
+  RepoEntry dco_decode_repo_entry(dynamic raw);
+
+  @protected
+  RepoInfo dco_decode_repo_info(dynamic raw);
+
+  @protected
+  RepoState dco_decode_repo_state(dynamic raw);
+
+  @protected
+  RepoStatus dco_decode_repo_status(dynamic raw);
+
+  @protected
+  SkippedPath dco_decode_skipped_path(dynamic raw);
+
+  @protected
+  int dco_decode_u_32(dynamic raw);
+
+  @protected
+  int dco_decode_u_8(dynamic raw);
+
+  @protected
+  void dco_decode_unit(dynamic raw);
+
+  @protected
+  AnyhowException sse_decode_AnyhowException(SseDeserializer deserializer);
+
+  @protected
+  RustStreamSink<int> sse_decode_StreamSink_u_32_Sse(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  String sse_decode_String(SseDeserializer deserializer);
+
+  @protected
+  AddReport sse_decode_add_report(SseDeserializer deserializer);
+
+  @protected
+  AppSettings sse_decode_app_settings(SseDeserializer deserializer);
+
+  @protected
+  AuthOptions sse_decode_auth_options(SseDeserializer deserializer);
+
+  @protected
+  bool sse_decode_bool(SseDeserializer deserializer);
+
+  @protected
+  AppSettings sse_decode_box_autoadd_app_settings(SseDeserializer deserializer);
+
+  @protected
+  AuthOptions sse_decode_box_autoadd_auth_options(SseDeserializer deserializer);
+
+  @protected
+  bool sse_decode_box_autoadd_bool(SseDeserializer deserializer);
+
+  @protected
+  ChangeKind sse_decode_box_autoadd_change_kind(SseDeserializer deserializer);
+
+  @protected
+  PullStrategy sse_decode_box_autoadd_pull_strategy(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  RepoEntry sse_decode_box_autoadd_repo_entry(SseDeserializer deserializer);
+
+  @protected
+  int sse_decode_box_autoadd_u_32(SseDeserializer deserializer);
+
+  @protected
+  BranchInfo sse_decode_branch_info(SseDeserializer deserializer);
+
+  @protected
+  ChangeKind sse_decode_change_kind(SseDeserializer deserializer);
+
+  @protected
+  CommitInfo sse_decode_commit_info(SseDeserializer deserializer);
+
+  @protected
+  CommitResult sse_decode_commit_result(SseDeserializer deserializer);
+
+  @protected
+  CoreError sse_decode_core_error(SseDeserializer deserializer);
+
+  @protected
+  DiffHunk sse_decode_diff_hunk(SseDeserializer deserializer);
+
+  @protected
+  DiffLine sse_decode_diff_line(SseDeserializer deserializer);
+
+  @protected
+  FetchResult sse_decode_fetch_result(SseDeserializer deserializer);
+
+  @protected
+  FileChange sse_decode_file_change(SseDeserializer deserializer);
+
+  @protected
+  FileDiff sse_decode_file_diff(SseDeserializer deserializer);
+
+  @protected
+  int sse_decode_i_32(SseDeserializer deserializer);
+
+  @protected
+  PlatformInt64 sse_decode_i_64(SseDeserializer deserializer);
+
+  @protected
+  LineKind sse_decode_line_kind(SseDeserializer deserializer);
+
+  @protected
+  List<String> sse_decode_list_String(SseDeserializer deserializer);
+
+  @protected
+  List<BranchInfo> sse_decode_list_branch_info(SseDeserializer deserializer);
+
+  @protected
+  List<CommitInfo> sse_decode_list_commit_info(SseDeserializer deserializer);
+
+  @protected
+  List<DiffHunk> sse_decode_list_diff_hunk(SseDeserializer deserializer);
+
+  @protected
+  List<DiffLine> sse_decode_list_diff_line(SseDeserializer deserializer);
+
+  @protected
+  List<FileChange> sse_decode_list_file_change(SseDeserializer deserializer);
+
+  @protected
+  List<FileDiff> sse_decode_list_file_diff(SseDeserializer deserializer);
+
+  @protected
+  Uint8List sse_decode_list_prim_u_8_strict(SseDeserializer deserializer);
+
+  @protected
+  List<RepoEntry> sse_decode_list_repo_entry(SseDeserializer deserializer);
+
+  @protected
+  List<SkippedPath> sse_decode_list_skipped_path(SseDeserializer deserializer);
+
+  @protected
+  String? sse_decode_opt_String(SseDeserializer deserializer);
+
+  @protected
+  bool? sse_decode_opt_box_autoadd_bool(SseDeserializer deserializer);
+
+  @protected
+  ChangeKind? sse_decode_opt_box_autoadd_change_kind(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  PullStrategy? sse_decode_opt_box_autoadd_pull_strategy(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  int? sse_decode_opt_box_autoadd_u_32(SseDeserializer deserializer);
+
+  @protected
+  PullOutcome sse_decode_pull_outcome(SseDeserializer deserializer);
+
+  @protected
+  PullResult sse_decode_pull_result(SseDeserializer deserializer);
+
+  @protected
+  PullStrategy sse_decode_pull_strategy(SseDeserializer deserializer);
+
+  @protected
+  PushResult sse_decode_push_result(SseDeserializer deserializer);
+
+  @protected
+  Registry sse_decode_registry(SseDeserializer deserializer);
+
+  @protected
+  RepoEntry sse_decode_repo_entry(SseDeserializer deserializer);
+
+  @protected
+  RepoInfo sse_decode_repo_info(SseDeserializer deserializer);
+
+  @protected
+  RepoState sse_decode_repo_state(SseDeserializer deserializer);
+
+  @protected
+  RepoStatus sse_decode_repo_status(SseDeserializer deserializer);
+
+  @protected
+  SkippedPath sse_decode_skipped_path(SseDeserializer deserializer);
+
+  @protected
+  int sse_decode_u_32(SseDeserializer deserializer);
+
+  @protected
+  int sse_decode_u_8(SseDeserializer deserializer);
+
+  @protected
+  void sse_decode_unit(SseDeserializer deserializer);
+
+  @protected
+  void sse_encode_AnyhowException(
+    AnyhowException self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_StreamSink_u_32_Sse(
+    RustStreamSink<int> self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_String(String self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_add_report(AddReport self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_app_settings(AppSettings self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_auth_options(AuthOptions self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_bool(bool self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_box_autoadd_app_settings(
+    AppSettings self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_box_autoadd_auth_options(
+    AuthOptions self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_box_autoadd_bool(bool self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_box_autoadd_change_kind(
+    ChangeKind self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_box_autoadd_pull_strategy(
+    PullStrategy self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_box_autoadd_repo_entry(
+    RepoEntry self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_box_autoadd_u_32(int self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_branch_info(BranchInfo self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_change_kind(ChangeKind self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_commit_info(CommitInfo self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_commit_result(CommitResult self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_core_error(CoreError self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_diff_hunk(DiffHunk self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_diff_line(DiffLine self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_fetch_result(FetchResult self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_file_change(FileChange self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_file_diff(FileDiff self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_i_32(int self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_i_64(PlatformInt64 self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_line_kind(LineKind self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_list_String(List<String> self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_list_branch_info(
+    List<BranchInfo> self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_list_commit_info(
+    List<CommitInfo> self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_list_diff_hunk(List<DiffHunk> self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_list_diff_line(List<DiffLine> self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_list_file_change(
+    List<FileChange> self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_list_file_diff(List<FileDiff> self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_list_prim_u_8_strict(
+    Uint8List self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_list_repo_entry(
+    List<RepoEntry> self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_list_skipped_path(
+    List<SkippedPath> self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_opt_String(String? self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_opt_box_autoadd_bool(bool? self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_opt_box_autoadd_change_kind(
+    ChangeKind? self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_opt_box_autoadd_pull_strategy(
+    PullStrategy? self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_opt_box_autoadd_u_32(int? self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_pull_outcome(PullOutcome self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_pull_result(PullResult self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_pull_strategy(PullStrategy self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_push_result(PushResult self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_registry(Registry self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_repo_entry(RepoEntry self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_repo_info(RepoInfo self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_repo_state(RepoState self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_repo_status(RepoStatus self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_skipped_path(SkippedPath self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_u_32(int self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_u_8(int self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_unit(void self, SseSerializer serializer);
+}
 
 // Section: wire_class
 
 class RustLibWire implements BaseWire {
-            RustLibWire.fromExternalLibrary(ExternalLibrary lib);
+  RustLibWire.fromExternalLibrary(ExternalLibrary lib);
+}
 
-            
-        }
-        @JS('wasm_bindgen') external RustLibWasmModule get wasmModule;
+@JS('wasm_bindgen')
+external RustLibWasmModule get wasmModule;
 
-        @JS() @anonymous extension type RustLibWasmModule._(JSObject _) implements JSObject {
-            
-        }
-        
+@JS()
+@anonymous
+extension type RustLibWasmModule._(JSObject _) implements JSObject {}
