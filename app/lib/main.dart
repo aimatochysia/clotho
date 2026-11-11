@@ -7,6 +7,7 @@ import 'core/background_fetch.dart';
 import 'core/git_service.dart';
 import 'core/github_service.dart';
 import 'core/notifications.dart';
+import 'core/tls.dart';
 import 'core/token_store.dart';
 import 'core/update_service.dart';
 import 'src/rust/frb_generated.dart';
@@ -18,6 +19,7 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await RustLib.init();
   final configDir = await getApplicationSupportDirectory();
+  await configureTlsSafely(configDir.path);
   final info = await PackageInfo.fromPlatform();
   const github = RustGitHubService();
   final auth = AuthController(github: github, store: const SecureTokenStore());

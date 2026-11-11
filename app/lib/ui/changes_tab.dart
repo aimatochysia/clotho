@@ -87,8 +87,10 @@ class _DiffPane extends StatelessWidget {
           child: DiffView(
             diff: d,
             binary: BinaryPreview(
-              // A fresh diff (the file changed again) reloads the preview.
-              key: ObjectKey(d),
+              // One preview per selected file; a fresh diff only reloads it
+              // quietly, so watcher refreshes do not make it flicker.
+              key: ValueKey('${d.path}:${repo.selection!.staged}'),
+              revision: d,
               file: d.path,
               git: repo.git,
               load: () => repo.git.workingFileVersions(

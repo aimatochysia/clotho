@@ -496,6 +496,17 @@ void main() {
     expect(find.text('Before'), findsOneWidget);
     expect(find.text('After'), findsOneWidget);
     expect(find.byType(Image), findsNWidgets(2));
+
+    // A watcher refresh with unchanged bytes keeps the same images on screen:
+    // no spinner, no new image widgets.
+    final before = tester.widgetList<Image>(find.byType(Image)).toList();
+    final page = tester.state(find.byType(RepoPage));
+    await (page as dynamic).repo.refresh();
+    await tester.pump();
+    expect(find.byType(CircularProgressIndicator), findsNothing);
+    await tester.pumpAndSettle();
+    final after = tester.widgetList<Image>(find.byType(Image)).toList();
+    expect(after.map((i) => i.image), before.map((i) => i.image));
     app.dispose();
   });
 

@@ -9,6 +9,7 @@ import '../src/rust/frb_generated.dart';
 import 'auto_fetch.dart';
 import 'git_service.dart';
 import 'notifications.dart';
+import 'tls.dart';
 import 'token_store.dart';
 
 /// Keeps scheduled fetches running while the app is closed. Only Android
@@ -117,6 +118,7 @@ void backgroundFetchDispatcher() {
       // Already loaded in this process.
     }
     final configDir = await getApplicationSupportDirectory();
+    await configureTlsSafely(configDir.path);
     String? token;
     try {
       token = await const SecureTokenStore().read();
