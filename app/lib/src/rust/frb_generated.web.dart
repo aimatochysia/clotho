@@ -16,6 +16,7 @@ import 'api/preview.dart';
 import 'api/registry.dart';
 import 'api/remote.dart';
 import 'api/repo.dart';
+import 'api/undo.dart';
 import 'api/update.dart';
 import 'api/watch.dart';
 
@@ -317,6 +318,15 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   int dco_decode_u_8(dynamic raw);
+
+  @protected
+  UndoKind dco_decode_undo_kind(dynamic raw);
+
+  @protected
+  UndoPlan dco_decode_undo_plan(dynamic raw);
+
+  @protected
+  UndoResult dco_decode_undo_result(dynamic raw);
 
   @protected
   void dco_decode_unit(dynamic raw);
@@ -629,6 +639,15 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   int sse_decode_u_8(SseDeserializer deserializer);
+
+  @protected
+  UndoKind sse_decode_undo_kind(SseDeserializer deserializer);
+
+  @protected
+  UndoPlan sse_decode_undo_plan(SseDeserializer deserializer);
+
+  @protected
+  UndoResult sse_decode_undo_result(SseDeserializer deserializer);
 
   @protected
   void sse_decode_unit(SseDeserializer deserializer);
@@ -1016,6 +1035,15 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   void sse_encode_u_8(int self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_undo_kind(UndoKind self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_undo_plan(UndoPlan self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_undo_result(UndoResult self, SseSerializer serializer);
 
   @protected
   void sse_encode_unit(void self, SseSerializer serializer);

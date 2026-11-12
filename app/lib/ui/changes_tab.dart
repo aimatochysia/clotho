@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../core/git_service.dart';
 import '../state/repo_controller.dart';
 import 'identity.dart';
+import 'undo.dart';
 import 'widgets/binary_preview.dart';
 import 'widgets/diff_view.dart';
 import 'widgets/feedback.dart';
@@ -348,19 +349,30 @@ class _CommitBoxState extends State<CommitBox> {
     if (outcome == null) return;
     _message.clear();
     final c = outcome.commit;
+    void undo() =>
+        undoCommitFlow(context, repo, oid: c.oid, summary: c.summary);
     if (outcome.pushError != null) {
       showMessage(
         context,
         'Committed ${c.shortOid}, but push failed: ${outcome.pushError}',
         error: true,
+        actionLabel: 'Undo',
+        onAction: undo,
       );
     } else if (outcome.push != null) {
       showMessage(
         context,
         'Committed ${c.shortOid} and pushed to ${outcome.push!.remote}/${outcome.push!.branch}',
+        actionLabel: 'Undo',
+        onAction: undo,
       );
     } else {
-      showMessage(context, 'Committed ${c.shortOid}: ${c.summary}');
+      showMessage(
+        context,
+        'Committed ${c.shortOid}: ${c.summary}',
+        actionLabel: 'Undo',
+        onAction: undo,
+      );
     }
   }
 

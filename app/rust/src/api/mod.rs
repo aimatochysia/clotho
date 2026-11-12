@@ -8,5 +8,6 @@ pub mod preview;
 pub mod registry;
 pub mod remote;
 pub mod repo;
+pub mod undo;
 pub mod update;
 pub mod watch;

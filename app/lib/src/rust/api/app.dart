@@ -16,10 +16,9 @@ String coreVersion() => RustLib.instance.api.crateApiAppCoreVersion();
 /// Version of the statically linked libgit2.
 String libgit2Version() => RustLib.instance.api.crateApiAppLibgit2Version();
 
-/// Points libgit2's TLS at the system's trusted certificates. Needed on
-/// Android: the bundled OpenSSL looks for a Linux CA file that does not exist
-/// there, so every HTTPS push or fetch failed with "the SSL certificate is
-/// invalid". The certificates are gathered into `cache_dir/cacert.pem`.
-/// Elsewhere this does nothing (the OS or the usual Linux paths are used).
+/// Points libgit2's TLS at trusted certificates. Needed on Android, where the
+/// bundled OpenSSL finds none, so every HTTPS push or fetch failed with "the
+/// SSL certificate is invalid". Elsewhere this does nothing (the OS or the
+/// usual Linux paths are used). `cache_dir` is kept for API stability.
 Future<void> configureTls({required String cacheDir}) =>
     RustLib.instance.api.crateApiAppConfigureTls(cacheDir: cacheDir);

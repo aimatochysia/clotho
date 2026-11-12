@@ -27,6 +27,13 @@ class CommitOutcome {
   final String? pushError;
 }
 
+class UndoOutcome {
+  const UndoOutcome(this.result, {this.push, this.pushError});
+  final UndoResult result;
+  final PushResult? push;
+  final String? pushError;
+}
+
 /// State for one open repository: changes, diff, branches and history.
 class RepoController extends ChangeNotifier {
   RepoController({required this.app, required this.path});
@@ -192,6 +199,37 @@ class RepoController extends ChangeNotifier {
     await refresh();
     await loadHistory(reset: true);
     return CommitOutcome(result, push: pushed, pushError: pushError);
+  }
+
+  // ---- undo -----------------------------------------------------------------
+
+  Future<UndoPlan> planUndo(String oid) => git.planUndo(path, oid);
+
+  /// Undoes [oid]. A cancelling commit is pushed like any other commit when
+  /// this repository pushes after committing.
+  Future<UndoOutcome> undoCommit(String oid) async {
+    final result = await app.run(
+      path,
+      () => git.undoCommit(path, oid, identity: app.identityFor(path)),
+    );
+    PushResult? pushed;
+    String? pushError;
+    if (result.kind == UndoKind.cancel && pushAfterCommit) {
+      try {
+        pushed = await app.push(path);
+      } catch (e) {
+        pushError = describeError(e);
+      }
+    }
+    await refresh();
+    await loadHistory(reset: true);
+    return UndoOutcome(result, push: pushed, pushError: pushError);
+  }
+
+  Future<void> redoUndo(String backup) async {
+    await app.run(path, () => git.redoUndo(path, backup));
+    await refresh();
+    await loadHistory(reset: true);
   }
 
   // ---- branches -------------------------------------------------------------

@@ -39,7 +39,7 @@ flutter_rust_bridge::frb_generated_boilerplate!(
     default_rust_auto_opaque = RustAutoOpaqueMoi,
 );
 pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_VERSION: &str = "2.13.0";
-pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = 905860391;
+pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = -1532302733;
 
 // Section: executor
 
@@ -1313,6 +1313,40 @@ fn wire__crate__api__registry__mark_auto_fetched_impl(
         },
     )
 }
+fn wire__crate__api__undo__plan_undo_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_normal::<flutter_rust_bridge::for_generated::SseCodec, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "plan_undo",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_path = <String>::sse_decode(&mut deserializer);
+            let api_oid = <String>::sse_decode(&mut deserializer);
+            deserializer.end();
+            move |context| {
+                transform_result_sse::<_, crate::error::CoreError>((move || {
+                    let output_ok = crate::api::undo::plan_undo(api_path, api_oid)?;
+                    std::result::Result::Ok(output_ok)
+                })())
+            }
+        },
+    )
+}
 fn wire__crate__api__remote__pull_impl(
     port_: flutter_rust_bridge::for_generated::MessagePort,
     ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
@@ -1379,6 +1413,40 @@ fn wire__crate__api__remote__push_impl(
             move |context| {
                 transform_result_sse::<_, crate::error::CoreError>((move || {
                     let output_ok = crate::api::remote::push(api_path, api_auth)?;
+                    std::result::Result::Ok(output_ok)
+                })())
+            }
+        },
+    )
+}
+fn wire__crate__api__undo__redo_undo_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_normal::<flutter_rust_bridge::for_generated::SseCodec, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "redo_undo",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_path = <String>::sse_decode(&mut deserializer);
+            let api_backup = <String>::sse_decode(&mut deserializer);
+            deserializer.end();
+            move |context| {
+                transform_result_sse::<_, crate::error::CoreError>((move || {
+                    let output_ok = crate::api::undo::redo_undo(api_path, api_backup)?;
                     std::result::Result::Ok(output_ok)
                 })())
             }
@@ -1649,6 +1717,42 @@ fn wire__crate__api__changes__stage_paths_impl(
             move |context| {
                 transform_result_sse::<_, crate::error::CoreError>((move || {
                     let output_ok = crate::api::changes::stage_paths(api_path, api_files)?;
+                    std::result::Result::Ok(output_ok)
+                })())
+            }
+        },
+    )
+}
+fn wire__crate__api__undo__undo_commit_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_normal::<flutter_rust_bridge::for_generated::SseCodec, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "undo_commit",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_path = <String>::sse_decode(&mut deserializer);
+            let api_oid = <String>::sse_decode(&mut deserializer);
+            let api_identity =
+                <Option<crate::api::identity::Identity>>::sse_decode(&mut deserializer);
+            deserializer.end();
+            move |context| {
+                transform_result_sse::<_, crate::error::CoreError>((move || {
+                    let output_ok = crate::api::undo::undo_commit(api_path, api_oid, api_identity)?;
                     std::result::Result::Ok(output_ok)
                 })())
             }
@@ -3142,6 +3246,47 @@ impl SseDecode for u8 {
     }
 }
 
+impl SseDecode for crate::api::undo::UndoKind {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut inner = <i32>::sse_decode(deserializer);
+        return match inner {
+            0 => crate::api::undo::UndoKind::TakeBack,
+            1 => crate::api::undo::UndoKind::Cancel,
+            2 => crate::api::undo::UndoKind::Unsupported,
+            _ => unreachable!("Invalid variant for UndoKind: {}", inner),
+        };
+    }
+}
+
+impl SseDecode for crate::api::undo::UndoPlan {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_kind = <crate::api::undo::UndoKind>::sse_decode(deserializer);
+        let mut var_pushed = <bool>::sse_decode(deserializer);
+        let mut var_reason = <Option<String>>::sse_decode(deserializer);
+        return crate::api::undo::UndoPlan {
+            kind: var_kind,
+            pushed: var_pushed,
+            reason: var_reason,
+        };
+    }
+}
+
+impl SseDecode for crate::api::undo::UndoResult {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_kind = <crate::api::undo::UndoKind>::sse_decode(deserializer);
+        let mut var_head = <String>::sse_decode(deserializer);
+        let mut var_backup = <Option<String>>::sse_decode(deserializer);
+        return crate::api::undo::UndoResult {
+            kind: var_kind,
+            head: var_head,
+            backup: var_backup,
+        };
+    }
+}
+
 impl SseDecode for () {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {}
@@ -3257,23 +3402,26 @@ fn pde_ffi_dispatcher_primary_impl(
         34 => wire__crate__api__registry__load_registry_impl(port, ptr, rust_vec_len, data_len),
         35 => wire__crate__api__history__log_page_impl(port, ptr, rust_vec_len, data_len),
         36 => wire__crate__api__registry__mark_auto_fetched_impl(port, ptr, rust_vec_len, data_len),
-        37 => wire__crate__api__remote__pull_impl(port, ptr, rust_vec_len, data_len),
-        38 => wire__crate__api__remote__push_impl(port, ptr, rust_vec_len, data_len),
-        39 => wire__crate__api__registry__remove_repo_impl(port, ptr, rust_vec_len, data_len),
-        40 => wire__crate__api__branches__rename_branch_impl(port, ptr, rust_vec_len, data_len),
-        41 => wire__crate__api__preview__render_aseprite_impl(port, ptr, rust_vec_len, data_len),
-        42 => wire__crate__api__repo__repo_status_impl(port, ptr, rust_vec_len, data_len),
-        43 => wire__crate__api__repo__scan_for_repos_impl(port, ptr, rust_vec_len, data_len),
-        44 => wire__crate__api__update__sha256_file_impl(port, ptr, rust_vec_len, data_len),
-        45 => wire__crate__api__changes__stage_all_impl(port, ptr, rust_vec_len, data_len),
-        46 => wire__crate__api__changes__stage_paths_impl(port, ptr, rust_vec_len, data_len),
-        47 => wire__crate__api__changes__unstage_paths_impl(port, ptr, rust_vec_len, data_len),
-        48 => wire__crate__api__watch__unwatch_repo_impl(port, ptr, rust_vec_len, data_len),
-        49 => wire__crate__api__registry__update_repo_impl(port, ptr, rust_vec_len, data_len),
-        50 => wire__crate__api__registry__update_settings_impl(port, ptr, rust_vec_len, data_len),
-        51 => wire__crate__api__identity__validate_identity_impl(port, ptr, rust_vec_len, data_len),
-        52 => wire__crate__api__watch__watch_repo_impl(port, ptr, rust_vec_len, data_len),
-        53 => {
+        37 => wire__crate__api__undo__plan_undo_impl(port, ptr, rust_vec_len, data_len),
+        38 => wire__crate__api__remote__pull_impl(port, ptr, rust_vec_len, data_len),
+        39 => wire__crate__api__remote__push_impl(port, ptr, rust_vec_len, data_len),
+        40 => wire__crate__api__undo__redo_undo_impl(port, ptr, rust_vec_len, data_len),
+        41 => wire__crate__api__registry__remove_repo_impl(port, ptr, rust_vec_len, data_len),
+        42 => wire__crate__api__branches__rename_branch_impl(port, ptr, rust_vec_len, data_len),
+        43 => wire__crate__api__preview__render_aseprite_impl(port, ptr, rust_vec_len, data_len),
+        44 => wire__crate__api__repo__repo_status_impl(port, ptr, rust_vec_len, data_len),
+        45 => wire__crate__api__repo__scan_for_repos_impl(port, ptr, rust_vec_len, data_len),
+        46 => wire__crate__api__update__sha256_file_impl(port, ptr, rust_vec_len, data_len),
+        47 => wire__crate__api__changes__stage_all_impl(port, ptr, rust_vec_len, data_len),
+        48 => wire__crate__api__changes__stage_paths_impl(port, ptr, rust_vec_len, data_len),
+        49 => wire__crate__api__undo__undo_commit_impl(port, ptr, rust_vec_len, data_len),
+        50 => wire__crate__api__changes__unstage_paths_impl(port, ptr, rust_vec_len, data_len),
+        51 => wire__crate__api__watch__unwatch_repo_impl(port, ptr, rust_vec_len, data_len),
+        52 => wire__crate__api__registry__update_repo_impl(port, ptr, rust_vec_len, data_len),
+        53 => wire__crate__api__registry__update_settings_impl(port, ptr, rust_vec_len, data_len),
+        54 => wire__crate__api__identity__validate_identity_impl(port, ptr, rust_vec_len, data_len),
+        55 => wire__crate__api__watch__watch_repo_impl(port, ptr, rust_vec_len, data_len),
+        56 => {
             wire__crate__api__preview__working_file_versions_impl(port, ptr, rust_vec_len, data_len)
         }
         _ => unreachable!(),
@@ -4329,6 +4477,59 @@ impl flutter_rust_bridge::IntoIntoDart<crate::api::registry::SkippedPath>
     }
 }
 // Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::undo::UndoKind {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        match self {
+            Self::TakeBack => 0.into_dart(),
+            Self::Cancel => 1.into_dart(),
+            Self::Unsupported => 2.into_dart(),
+            _ => unreachable!(),
+        }
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive for crate::api::undo::UndoKind {}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::undo::UndoKind> for crate::api::undo::UndoKind {
+    fn into_into_dart(self) -> crate::api::undo::UndoKind {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::undo::UndoPlan {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.kind.into_into_dart().into_dart(),
+            self.pushed.into_into_dart().into_dart(),
+            self.reason.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive for crate::api::undo::UndoPlan {}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::undo::UndoPlan> for crate::api::undo::UndoPlan {
+    fn into_into_dart(self) -> crate::api::undo::UndoPlan {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::undo::UndoResult {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.kind.into_into_dart().into_dart(),
+            self.head.into_into_dart().into_dart(),
+            self.backup.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive for crate::api::undo::UndoResult {}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::undo::UndoResult>
+    for crate::api::undo::UndoResult
+{
+    fn into_into_dart(self) -> crate::api::undo::UndoResult {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
 impl flutter_rust_bridge::IntoDart for crate::api::update::UpdateInfo {
     fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
         [
@@ -5361,6 +5562,41 @@ impl SseEncode for u8 {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
         serializer.cursor.write_u8(self).unwrap();
+    }
+}
+
+impl SseEncode for crate::api::undo::UndoKind {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <i32>::sse_encode(
+            match self {
+                crate::api::undo::UndoKind::TakeBack => 0,
+                crate::api::undo::UndoKind::Cancel => 1,
+                crate::api::undo::UndoKind::Unsupported => 2,
+                _ => {
+                    unimplemented!("");
+                }
+            },
+            serializer,
+        );
+    }
+}
+
+impl SseEncode for crate::api::undo::UndoPlan {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <crate::api::undo::UndoKind>::sse_encode(self.kind, serializer);
+        <bool>::sse_encode(self.pushed, serializer);
+        <Option<String>>::sse_encode(self.reason, serializer);
+    }
+}
+
+impl SseEncode for crate::api::undo::UndoResult {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <crate::api::undo::UndoKind>::sse_encode(self.kind, serializer);
+        <String>::sse_encode(self.head, serializer);
+        <Option<String>>::sse_encode(self.backup, serializer);
     }
 }
 
