@@ -118,6 +118,75 @@ void main() {
     app.dispose();
   });
 
+  testWidgets('a fresh commit can be undone and redone from the snackbar', (
+    tester,
+  ) async {
+    final git = FakeGitService(repos: [repo])
+      ..statuses[repo.path] = statusWith(files: [stagedFile]);
+    final app = await boot(git);
+    await openRepo(tester, app);
+    await tester.enterText(find.byKey(const Key('commit-message')), 'oops');
+    await tester.pump();
+    await tester.tap(find.byKey(const Key('commit-button')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(SnackBarAction, 'Undo'));
+    await tester.pumpAndSettle();
+    expect(find.text('Undo this commit?'), findsOneWidget);
+    expect(find.textContaining('has not been pushed yet'), findsOneWidget);
+    await tester.tap(find.text('Undo commit'));
+    await tester.pumpAndSettle();
+    expect(git.calls, contains('undo takeBack ${'deadbeef' * 5}'));
+    expect(find.textContaining('Commit undone'), findsOneWidget);
+    await tester.tap(find.widgetWithText(SnackBarAction, 'Redo'));
+    await tester.pumpAndSettle();
+    expect(git.calls, contains('redo refs/clotho/backup/1-${'deadbeef' * 5}'));
+    app.dispose();
+  });
+
+  testWidgets('a pushed commit is cancelled with a new commit', (tester) async {
+    final git = FakeGitService(repos: [repo])
+      ..statuses[repo.path] = statusWith(files: [stagedFile])
+      ..undoPlan = const UndoPlan(kind: UndoKind.cancel, pushed: true);
+    final app = await boot(git);
+    await openRepo(tester, app);
+    await tester.enterText(find.byKey(const Key('commit-message')), 'shared');
+    await tester.pump();
+    await tester.tap(find.byKey(const Key('commit-button')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(SnackBarAction, 'Undo'));
+    await tester.pumpAndSettle();
+    expect(find.text('Cancel this commit?'), findsOneWidget);
+    expect(find.textContaining('already on the remote'), findsOneWidget);
+    await tester.tap(find.text('Add cancelling commit'));
+    await tester.pumpAndSettle();
+    expect(git.calls, contains('undo cancel ${'deadbeef' * 5}'));
+    expect(find.textContaining('cancels "shared"'), findsOneWidget);
+    app.dispose();
+  });
+
+  testWidgets('an unsupported undo explains why and changes nothing', (
+    tester,
+  ) async {
+    final git = FakeGitService(repos: [repo])
+      ..statuses[repo.path] = statusWith(files: [stagedFile])
+      ..undoPlan = const UndoPlan(
+        kind: UndoKind.unsupported,
+        pushed: false,
+        reason: 'Undoing a merge is not supported yet.',
+      );
+    final app = await boot(git);
+    await openRepo(tester, app);
+    await tester.enterText(find.byKey(const Key('commit-message')), 'm');
+    await tester.pump();
+    await tester.tap(find.byKey(const Key('commit-button')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(SnackBarAction, 'Undo'));
+    await tester.pumpAndSettle();
+    expect(find.text('Undoing a merge is not supported yet.'), findsOneWidget);
+    expect(git.calls.where((c) => c.startsWith('undo')), isEmpty);
+    app.dispose();
+  });
+
   testWidgets('staging a file enables commit; message is required', (
     tester,
   ) async {

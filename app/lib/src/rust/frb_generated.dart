@@ -13,6 +13,7 @@ import 'api/preview.dart';
 import 'api/registry.dart';
 import 'api/remote.dart';
 import 'api/repo.dart';
+import 'api/undo.dart';
 import 'api/update.dart';
 import 'api/watch.dart';
 
@@ -81,7 +82,7 @@ class RustLib extends BaseEntrypoint<RustLibApi, RustLibApiImpl, RustLibWire> {
   String get codegenVersion => '2.13.0';
 
   @override
-  int get rustContentHash => 905860391;
+  int get rustContentHash => -1532302733;
 
   static const kDefaultExternalLibraryLoaderConfig =
       ExternalLibraryLoaderConfig(
@@ -251,6 +252,11 @@ abstract class RustLibApi extends BaseApi {
     required PlatformInt64 atSeconds,
   });
 
+  Future<UndoPlan> crateApiUndoPlanUndo({
+    required String path,
+    required String oid,
+  });
+
   Future<PullResult> crateApiRemotePull({
     required String path,
     required PullStrategy strategy,
@@ -261,6 +267,11 @@ abstract class RustLibApi extends BaseApi {
   Future<PushResult> crateApiRemotePush({
     required String path,
     required AuthOptions auth,
+  });
+
+  Future<String> crateApiUndoRedoUndo({
+    required String path,
+    required String backup,
   });
 
   Future<Registry> crateApiRegistryRemoveRepo({
@@ -290,6 +301,12 @@ abstract class RustLibApi extends BaseApi {
   Future<void> crateApiChangesStagePaths({
     required String path,
     required List<String> files,
+  });
+
+  Future<UndoResult> crateApiUndoUndoCommit({
+    required String path,
+    required String oid,
+    Identity? identity,
   });
 
   Future<void> crateApiChangesUnstagePaths({
@@ -1510,6 +1527,38 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       );
 
   @override
+  Future<UndoPlan> crateApiUndoPlanUndo({
+    required String path,
+    required String oid,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(path, serializer);
+          sse_encode_String(oid, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 37,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_undo_plan,
+          decodeErrorData: sse_decode_core_error,
+        ),
+        constMeta: kCrateApiUndoPlanUndoConstMeta,
+        argValues: [path, oid],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiUndoPlanUndoConstMeta =>
+      const TaskConstMeta(debugName: "plan_undo", argNames: ["path", "oid"]);
+
+  @override
   Future<PullResult> crateApiRemotePull({
     required String path,
     required PullStrategy strategy,
@@ -1527,7 +1576,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 37,
+            funcId: 38,
             port: port_,
           );
         },
@@ -1561,7 +1610,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 38,
+            funcId: 39,
             port: port_,
           );
         },
@@ -1580,6 +1629,38 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       const TaskConstMeta(debugName: "push", argNames: ["path", "auth"]);
 
   @override
+  Future<String> crateApiUndoRedoUndo({
+    required String path,
+    required String backup,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(path, serializer);
+          sse_encode_String(backup, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 40,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_String,
+          decodeErrorData: sse_decode_core_error,
+        ),
+        constMeta: kCrateApiUndoRedoUndoConstMeta,
+        argValues: [path, backup],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiUndoRedoUndoConstMeta =>
+      const TaskConstMeta(debugName: "redo_undo", argNames: ["path", "backup"]);
+
+  @override
   Future<Registry> crateApiRegistryRemoveRepo({
     required String configDir,
     required String path,
@@ -1593,7 +1674,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 39,
+            funcId: 41,
             port: port_,
           );
         },
@@ -1629,7 +1710,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 40,
+            funcId: 42,
             port: port_,
           );
         },
@@ -1660,7 +1741,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 41,
+            funcId: 43,
             port: port_,
           );
         },
@@ -1688,7 +1769,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 42,
+            funcId: 44,
             port: port_,
           );
         },
@@ -1720,7 +1801,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 43,
+            funcId: 45,
             port: port_,
           );
         },
@@ -1750,7 +1831,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 44,
+            funcId: 46,
             port: port_,
           );
         },
@@ -1778,7 +1859,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 45,
+            funcId: 47,
             port: port_,
           );
         },
@@ -1810,7 +1891,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 46,
+            funcId: 48,
             port: port_,
           );
         },
@@ -1831,6 +1912,42 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   );
 
   @override
+  Future<UndoResult> crateApiUndoUndoCommit({
+    required String path,
+    required String oid,
+    Identity? identity,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(path, serializer);
+          sse_encode_String(oid, serializer);
+          sse_encode_opt_box_autoadd_identity(identity, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 49,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_undo_result,
+          decodeErrorData: sse_decode_core_error,
+        ),
+        constMeta: kCrateApiUndoUndoCommitConstMeta,
+        argValues: [path, oid, identity],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiUndoUndoCommitConstMeta => const TaskConstMeta(
+    debugName: "undo_commit",
+    argNames: ["path", "oid", "identity"],
+  );
+
+  @override
   Future<void> crateApiChangesUnstagePaths({
     required String path,
     required List<String> files,
@@ -1844,7 +1961,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 47,
+            funcId: 50,
             port: port_,
           );
         },
@@ -1875,7 +1992,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 48,
+            funcId: 51,
             port: port_,
           );
         },
@@ -1907,7 +2024,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 49,
+            funcId: 52,
             port: port_,
           );
         },
@@ -1941,7 +2058,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 50,
+            funcId: 53,
             port: port_,
           );
         },
@@ -1974,7 +2091,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 51,
+            funcId: 54,
             port: port_,
           );
         },
@@ -2008,7 +2125,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
             pdeCallFfi(
               generalizedFrbRustBinding,
               serializer,
-              funcId: 52,
+              funcId: 55,
               port: port_,
             );
           },
@@ -2044,7 +2161,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 53,
+            funcId: 56,
             port: port_,
           );
         },
@@ -2983,6 +3100,38 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   int dco_decode_u_8(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return raw as int;
+  }
+
+  @protected
+  UndoKind dco_decode_undo_kind(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return UndoKind.values[raw as int];
+  }
+
+  @protected
+  UndoPlan dco_decode_undo_plan(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 3)
+      throw Exception('unexpected arr length: expect 3 but see ${arr.length}');
+    return UndoPlan(
+      kind: dco_decode_undo_kind(arr[0]),
+      pushed: dco_decode_bool(arr[1]),
+      reason: dco_decode_opt_String(arr[2]),
+    );
+  }
+
+  @protected
+  UndoResult dco_decode_undo_result(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 3)
+      throw Exception('unexpected arr length: expect 3 but see ${arr.length}');
+    return UndoResult(
+      kind: dco_decode_undo_kind(arr[0]),
+      head: dco_decode_String(arr[1]),
+      backup: dco_decode_opt_String(arr[2]),
+    );
   }
 
   @protected
@@ -4172,6 +4321,31 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  UndoKind sse_decode_undo_kind(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var inner = sse_decode_i_32(deserializer);
+    return UndoKind.values[inner];
+  }
+
+  @protected
+  UndoPlan sse_decode_undo_plan(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_kind = sse_decode_undo_kind(deserializer);
+    var var_pushed = sse_decode_bool(deserializer);
+    var var_reason = sse_decode_opt_String(deserializer);
+    return UndoPlan(kind: var_kind, pushed: var_pushed, reason: var_reason);
+  }
+
+  @protected
+  UndoResult sse_decode_undo_result(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_kind = sse_decode_undo_kind(deserializer);
+    var var_head = sse_decode_String(deserializer);
+    var var_backup = sse_decode_opt_String(deserializer);
+    return UndoResult(kind: var_kind, head: var_head, backup: var_backup);
+  }
+
+  @protected
   void sse_decode_unit(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
   }
@@ -5230,6 +5404,28 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   void sse_encode_u_8(int self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     serializer.buffer.putUint8(self);
+  }
+
+  @protected
+  void sse_encode_undo_kind(UndoKind self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_i_32(self.index, serializer);
+  }
+
+  @protected
+  void sse_encode_undo_plan(UndoPlan self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_undo_kind(self.kind, serializer);
+    sse_encode_bool(self.pushed, serializer);
+    sse_encode_opt_String(self.reason, serializer);
+  }
+
+  @protected
+  void sse_encode_undo_result(UndoResult self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_undo_kind(self.kind, serializer);
+    sse_encode_String(self.head, serializer);
+    sse_encode_opt_String(self.backup, serializer);
   }
 
   @protected

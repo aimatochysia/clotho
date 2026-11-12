@@ -275,6 +275,44 @@ class FakeGitService implements GitService {
     );
   }
 
+  /// What `planUndo` reports.
+  UndoPlan undoPlan = const UndoPlan(kind: UndoKind.takeBack, pushed: false);
+
+  @override
+  Future<UndoPlan> planUndo(String path, String oid) async => undoPlan;
+
+  @override
+  Future<UndoResult> undoCommit(
+    String path,
+    String oid, {
+    Identity? identity,
+  }) async {
+    calls.add('undo ${undoPlan.kind.name} $oid');
+    final s = await status(path);
+    if (undoPlan.kind == UndoKind.takeBack) {
+      statuses[path] = statusWith(
+        path: path,
+        ahead: s.ahead > 0 ? s.ahead - 1 : 0,
+        files: const [stagedFile],
+      );
+      return UndoResult(
+        kind: UndoKind.takeBack,
+        head: 'parent',
+        backup: 'refs/clotho/backup/1-$oid',
+      );
+    }
+    statuses[path] = statusWith(path: path, ahead: s.ahead + 1);
+    return const UndoResult(kind: UndoKind.cancel, head: 'revert');
+  }
+
+  @override
+  Future<String> redoUndo(String path, String backup) async {
+    calls.add('redo $backup');
+    final s = await status(path);
+    statuses[path] = statusWith(path: path, ahead: s.ahead + 1);
+    return 'redone';
+  }
+
   @override
   Future<List<BranchInfo>> branches(String path) async => [
     BranchInfo(

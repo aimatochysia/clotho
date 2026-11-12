@@ -2,7 +2,13 @@ import 'package:flutter/material.dart';
 
 import '../../core/errors.dart';
 
-void showMessage(BuildContext context, String text, {bool error = false}) {
+void showMessage(
+  BuildContext context,
+  String text, {
+  bool error = false,
+  String? actionLabel,
+  VoidCallback? onAction,
+}) {
   final messenger = ScaffoldMessenger.maybeOf(context);
   if (messenger == null) return;
   final colors = Theme.of(context).colorScheme;
@@ -13,7 +19,10 @@ void showMessage(BuildContext context, String text, {bool error = false}) {
         content: Text(text),
         backgroundColor: error ? colors.error : null,
         behavior: SnackBarBehavior.floating,
-        duration: Duration(seconds: error ? 6 : 3),
+        duration: Duration(seconds: error || onAction != null ? 6 : 3),
+        action: actionLabel != null && onAction != null
+            ? SnackBarAction(label: actionLabel, onPressed: onAction)
+            : null,
       ),
     );
 }

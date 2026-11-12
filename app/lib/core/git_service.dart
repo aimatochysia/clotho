@@ -8,6 +8,7 @@ import '../src/rust/api/preview.dart' as rv;
 import '../src/rust/api/registry.dart' as rr;
 import '../src/rust/api/remote.dart' as rm;
 import '../src/rust/api/repo.dart' as rp;
+import '../src/rust/api/undo.dart' as ru;
 import '../src/rust/api/watch.dart' as rw;
 
 import '../src/rust/api/branches.dart' show BranchInfo;
@@ -20,6 +21,7 @@ import '../src/rust/api/registry.dart'
 import '../src/rust/api/remote.dart'
     show AuthOptions, FetchResult, PullResult, PullStrategy, PushResult;
 import '../src/rust/api/repo.dart' show RepoStatus;
+import '../src/rust/api/undo.dart' show UndoPlan, UndoResult;
 
 export '../src/rust/api/branches.dart' show BranchInfo;
 export '../src/rust/api/changes.dart'
@@ -27,6 +29,7 @@ export '../src/rust/api/changes.dart'
 export '../src/rust/api/history.dart' show CommitInfo;
 export '../src/rust/api/identity.dart' show Identity;
 export '../src/rust/api/preview.dart' show FileSide, FileVersions;
+export '../src/rust/api/undo.dart' show UndoKind, UndoPlan, UndoResult;
 export '../src/rust/api/registry.dart'
     show
         AddReport,
@@ -175,6 +178,14 @@ abstract interface class GitService {
   Future<void> renameBranch(String path, String oldName, String newName);
   Future<void> deleteBranch(String path, String name, {bool force = false});
 
+  /// How [oid] would be undone: taken back (not pushed, newest) or cancelled
+  /// with a new commit.
+  Future<UndoPlan> planUndo(String path, String oid);
+  Future<UndoResult> undoCommit(String path, String oid, {Identity? identity});
+
+  /// Puts back a commit taken back by [undoCommit]; returns its id.
+  Future<String> redoUndo(String path, String backup);
+
   Future<List<CommitInfo>> log(
     String path, {
     bool allBranches = false,
@@ -317,6 +328,19 @@ class RustGitService implements GitService {
   @override
   Future<void> deleteBranch(String path, String name, {bool force = false}) =>
       rb.deleteBranch(path: path, name: name, force: force);
+
+  @override
+  Future<UndoPlan> planUndo(String path, String oid) =>
+      ru.planUndo(path: path, oid: oid);
+  @override
+  Future<UndoResult> undoCommit(
+    String path,
+    String oid, {
+    Identity? identity,
+  }) => ru.undoCommit(path: path, oid: oid, identity: identity);
+  @override
+  Future<String> redoUndo(String path, String backup) =>
+      ru.redoUndo(path: path, backup: backup);
 
   @override
   Future<List<CommitInfo>> log(

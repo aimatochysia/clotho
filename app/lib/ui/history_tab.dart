@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import '../core/format.dart';
 import '../core/git_service.dart';
 import '../state/repo_controller.dart';
+import 'undo.dart';
 import 'widgets/commit_graph.dart';
 import 'widgets/binary_preview.dart';
 import 'widgets/diff_view.dart';
@@ -69,6 +70,12 @@ class HistoryTab extends StatelessWidget {
                         maxWidth: maxWidth,
                         isHead: c.shortOid == headOid,
                         remoteRefs: remoteRefs,
+                        onLongPress: () => undoCommitFlow(
+                          context,
+                          repo,
+                          oid: c.oid,
+                          summary: c.summary,
+                        ),
                         onTap: () => Navigator.of(context).push(
                           MaterialPageRoute(
                             builder: (_) => CommitPage(repo: repo, commit: c),
@@ -92,6 +99,7 @@ class _CommitRow extends StatelessWidget {
     required this.isHead,
     required this.remoteRefs,
     required this.onTap,
+    required this.onLongPress,
   });
   final Set<String> remoteRefs;
   final CommitInfo commit;
@@ -99,12 +107,14 @@ class _CommitRow extends StatelessWidget {
   final int maxWidth;
   final bool isHead;
   final VoidCallback onTap;
+  final VoidCallback onLongPress;
 
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     return InkWell(
       onTap: onTap,
+      onLongPress: onLongPress,
       child: Row(
         children: [
           const SizedBox(width: 8),
@@ -178,6 +188,20 @@ class _CommitPageState extends State<CommitPage> {
       appBar: AppBar(
         title: Text(c.shortOid),
         actions: [
+          IconButton(
+            key: const Key('undo-commit'),
+            tooltip: 'Undo this commit',
+            icon: const Icon(Icons.undo),
+            onPressed: () async {
+              final done = await undoCommitFlow(
+                context,
+                widget.repo,
+                oid: c.oid,
+                summary: c.summary,
+              );
+              if (done && context.mounted) Navigator.of(context).pop();
+            },
+          ),
           IconButton(
             tooltip: 'New branch from this commit',
             icon: const Icon(Icons.call_split),
