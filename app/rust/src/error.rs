@@ -56,9 +56,28 @@ impl From<git2::Error> for CoreError {
             {
                 CoreError::Auth { message }
             }
+            git2::ErrorCode::Certificate => CoreError::Git {
+                message: with_tls_hint(message),
+            },
             _ => CoreError::Git { message },
         }
     }
+}
+
+/// Adds how many certificates Clotho trusts on Android, so a TLS failure
+/// report tells whether the store was loaded at all.
+fn with_tls_hint(message: String) -> String {
+    #[cfg(target_os = "android")]
+    if let Some(s) = crate::tls::summary() {
+        return format!(
+            "{message} (Clotho trusts {} system and {} built-in certificates)",
+            s.system, s.bundled
+        );
+    }
+    #[cfg(target_os = "android")]
+    return format!("{message} (no trusted certificates were loaded)");
+    #[cfg(not(target_os = "android"))]
+    message
 }
 
 impl From<std::io::Error> for CoreError {
