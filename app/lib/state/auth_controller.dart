@@ -21,7 +21,11 @@ class AuthController extends ChangeNotifier {
     required this.github,
     required this.store,
     this.clientId = githubClientId,
+    this.retryDelay = const Duration(milliseconds: 300),
   });
+
+  /// Base wait between attempts to read the saved token.
+  final Duration retryDelay;
 
   final GitHubService github;
   final TokenStore store;
@@ -55,14 +59,29 @@ class AuthController extends ChangeNotifier {
   AuthOptions get authOptions => AuthOptions(token: _token);
 
   Future<void> init() async {
-    try {
-      _token = await store.read();
-    } catch (_) {
-      _token = null;
-    }
+    _token = await _readSaved();
     _loading = false;
     notifyListeners();
     if (_token != null) await refreshUser();
+  }
+
+  /// Reads the saved token, retrying a failed read a few times: a keychain
+  /// that is busy or still unlocking should not look like being signed out.
+  /// A read that keeps failing leaves the saved token alone.
+  Future<String?> _readSaved() async {
+    Object? last;
+    for (var attempt = 0; attempt < 3; attempt++) {
+      try {
+        return await store.read();
+      } catch (e) {
+        last = e;
+        await Future<void>.delayed(retryDelay * (attempt + 1));
+      }
+    }
+    _storageWarning =
+        'Your saved GitHub sign-in could not be read right now ($last). '
+        'Restart the app to try again before signing in.';
+    return null;
   }
 
   /// Re-reads the profile. A rejected token signs out; a network failure

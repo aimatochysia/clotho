@@ -17,6 +17,11 @@ class SecureTokenStore implements TokenStore {
     // The app is distributed unsigned-by-Apple, so use the login keychain
     // rather than the data-protection keychain (which needs an entitlement).
     mOptions: MacOsOptions(usesDataProtectionKeychain: false),
+    // The plugin's default wipes ALL saved data whenever one read fails on
+    // Android. A passing hiccup (for example the background fetch reading
+    // at the same moment as the app) then silently signed people out. Keep
+    // the data and let the caller retry instead.
+    aOptions: AndroidOptions(resetOnError: false),
   );
 
   @override

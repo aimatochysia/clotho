@@ -16,7 +16,57 @@ class FailingStore implements TokenStore {
   Future<void> delete() async {}
 }
 
+/// A keychain whose first reads fail, like one that is busy or unlocking.
+class FlakyStore implements TokenStore {
+  FlakyStore(this.failures, this.token);
+  int failures;
+  String? token;
+  int deletes = 0;
+  @override
+  Future<String?> read() async {
+    if (failures > 0) {
+      failures--;
+      throw Exception('keystore busy');
+    }
+    return token;
+  }
+
+  @override
+  Future<void> write(String t) async => token = t;
+  @override
+  Future<void> delete() async {
+    deletes++;
+    token = null;
+  }
+}
+
 void main() {
+  test('a failed keychain read is retried', () async {
+    final store = FlakyStore(2, 'good');
+    final auth = AuthController(
+      github: FakeGitHubService(),
+      store: store,
+      retryDelay: Duration.zero,
+    );
+    await auth.init();
+    expect(auth.signedIn, isTrue);
+    expect(auth.storageWarning, isNull);
+  });
+
+  test('a keychain that cannot be read keeps the saved token', () async {
+    final store = FlakyStore(99, 'good');
+    final auth = AuthController(
+      github: FakeGitHubService(),
+      store: store,
+      retryDelay: Duration.zero,
+    );
+    await auth.init();
+    expect(auth.signedIn, isFalse);
+    expect(auth.storageWarning, contains('could not be read'));
+    expect(store.deletes, 0);
+    expect(store.token, 'good');
+  });
+
   test('restores a saved token and loads the user', () async {
     final gh = FakeGitHubService();
     final auth = fakeAuth(gh, token: 'good');
