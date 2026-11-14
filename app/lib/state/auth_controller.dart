@@ -93,6 +93,10 @@ class AuthController extends ChangeNotifier {
       _user = await github.user(t);
     } on CoreError_Auth {
       await signOut();
+      _signInError =
+          'GitHub no longer accepts your saved sign-in (it may have been '
+          'revoked). Sign in again.';
+      notifyListeners();
       return;
     } catch (_) {
       // Offline or GitHub unavailable; try again later.
