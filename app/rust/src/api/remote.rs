@@ -95,9 +95,33 @@ pub(crate) fn callbacks<'a>(auth: &'a AuthOptions, config: git2::Config) -> Remo
         }
         if allowed.contains(CredentialType::USER_PASS_PLAINTEXT) {
             // Only hand the GitHub token to GitHub, never to other hosts.
-            if let (Some(token), 0..=1, true) = (&auth.token, n, is_github_url(url)) {
-                let user = auth.username.as_deref().unwrap_or("x-access-token");
-                return Cred::userpass_plaintext(user, token);
+            if is_github_url(url) {
+                match &auth.token {
+                    Some(token) if n <= 1 => {
+                        let user = auth.username.as_deref().unwrap_or("x-access-token");
+                        return Cred::userpass_plaintext(user, token);
+                    }
+                    // GitHub turned the token down twice; asking a credential
+                    // helper next only hides that behind a confusing error.
+                    Some(_) => {
+                        return Err(git2::Error::new(
+                            git2::ErrorCode::Auth,
+                            git2::ErrorClass::Http,
+                            "GitHub rejected your sign-in for this repository",
+                        ))
+                    }
+                    None => {
+                        return Cred::credential_helper(&config, url, username_from_url).map_err(
+                            |_| {
+                                git2::Error::new(
+                                    git2::ErrorCode::Auth,
+                                    git2::ErrorClass::Http,
+                                    "sign in to GitHub first",
+                                )
+                            },
+                        )
+                    }
+                }
             }
             return Cred::credential_helper(&config, url, username_from_url);
         }

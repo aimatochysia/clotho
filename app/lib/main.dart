@@ -30,6 +30,7 @@ Future<void> main() async {
     ),
     notifier: LocalFetchNotifier(),
     background: platformBackgroundFetch(),
+    onAuthRejected: auth.refreshUser,
   );
   final updates = UpdateController(
     service: RustUpdateService(),

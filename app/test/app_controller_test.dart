@@ -55,6 +55,23 @@ void main() {
     app.dispose();
   });
 
+  test('a rejected sign-in asks for the account to be re-checked', () async {
+    var checks = 0;
+    final git = FakeGitService(repos: [a, b])
+      ..fetchErrors['/r/a'] = const CoreError.auth(
+        message: 'GitHub rejected your sign-in for this repository',
+      );
+    final app = AppController(git, onAuthRejected: () async => checks++);
+    await app.init();
+    await app.fetchAll();
+    expect(checks, 1);
+    await expectLater(app.fetch('/r/a'), throwsA(isA<CoreError_Auth>()));
+    expect(checks, 2);
+    await app.fetch('/r/b');
+    expect(checks, 2);
+    app.dispose();
+  });
+
   test('auto fetch follows each schedule and skips repos with it off', () {
     fakeAsync((async) {
       final git = FakeGitService(repos: [a, b]);

@@ -7,6 +7,7 @@ import '../core/background_fetch.dart';
 import '../core/errors.dart';
 import '../core/git_service.dart';
 import '../core/notifications.dart';
+import '../src/rust/error.dart';
 
 /// Status of one repository on the dashboard.
 class RepoView {
@@ -36,7 +37,12 @@ class AppController extends ChangeNotifier {
     this.notifier = const SilentNotifier(),
     this.background = const NoBackgroundFetch(),
     this.tick = const Duration(minutes: 1),
+    this.onAuthRejected,
   });
+
+  /// Called when a remote turns the sign-in down, so the GitHub account can
+  /// be re-checked (a revoked token then signs out and asks to sign in).
+  final Future<void> Function()? onAuthRejected;
 
   final GitService git;
   final FetchNotifier notifier;
@@ -255,6 +261,7 @@ class AppController extends ChangeNotifier {
       _fetchErrors.remove(path);
     } catch (e) {
       _fetchErrors[path] = describeError(e);
+      if (e is CoreError_Auth) await onAuthRejected?.call();
     }
     await refreshStatus(path);
   }
@@ -266,6 +273,9 @@ class AppController extends ChangeNotifier {
     notifyListeners();
     try {
       return await op();
+    } on CoreError_Auth {
+      await onAuthRejected?.call();
+      rethrow;
     } finally {
       _busy.remove(path);
       await refreshStatus(path);

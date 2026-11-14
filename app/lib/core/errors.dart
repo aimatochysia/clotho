@@ -24,6 +24,11 @@ String describeError(Object error) {
         'Branch $branch is not linked to a remote branch yet. Push it first.',
       CoreError_DetachedHead() =>
         'You are not on a branch. Check out a branch first.',
+      CoreError_Auth(:final message)
+          when message.contains('rejected your sign-in') =>
+        'GitHub rejected your sign-in for this repository. Check that your '
+            'account can access it; an organization may also need to approve '
+            'Clotho in its OAuth app settings.',
       CoreError_Auth(:final message) =>
         'Sign-in to the remote failed: $message',
       CoreError_PushRejected(:final message) => 'Push rejected: $message',

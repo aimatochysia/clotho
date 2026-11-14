@@ -86,6 +86,7 @@ void main() {
     await auth.init();
     expect(auth.signedIn, isFalse);
     expect(await store.read(), isNull);
+    expect(auth.signInError, contains('no longer accepts'));
   });
 
   test('personal access token is validated before saving', () async {
