@@ -36,6 +36,8 @@ dependencies:
   cupertino_icons: ^1.0.8
   clotho_core:
     path: rust_builder
+  clotho_keystore:
+    path: clotho_keystore
   flutter_rust_bridge: 2.13.0
   freezed_annotation: ^3.1.0
   path_provider: ^2.1.6

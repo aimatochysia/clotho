@@ -22,7 +22,7 @@ Future<void> main() async {
   await configureTlsSafely(configDir.path);
   final info = await PackageInfo.fromPlatform();
   const github = RustGitHubService();
-  final auth = AuthController(github: github, store: const SecureTokenStore());
+  final auth = AuthController(github: github, store: platformTokenStore());
   final app = AppController(
     RustGitService(
       configDir: configDir.path,
