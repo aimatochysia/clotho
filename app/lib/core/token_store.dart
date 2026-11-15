@@ -1,3 +1,6 @@
+import 'dart:io';
+
+import 'package:clotho_keystore/clotho_keystore.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 /// Where the GitHub token lives between launches.
@@ -31,6 +34,56 @@ class SecureTokenStore implements TokenStore {
   @override
   Future<void> delete() => _storage.delete(key: _key);
 }
+
+/// Android: an app-private file encrypted with an Android Keystore key.
+///
+/// The keychain plugin used before lost the saved token after some restarts,
+/// signing people out daily. This store never deletes on a failed read, and
+/// moves a token saved by the old store over the first time it is read.
+class AndroidKeystoreTokenStore implements TokenStore {
+  const AndroidKeystoreTokenStore({
+    this.keystore = const ClothoKeystore(),
+    this.legacy = const SecureTokenStore(),
+  });
+
+  static const _key = 'github_token';
+  final ClothoKeystore keystore;
+  final TokenStore legacy;
+
+  @override
+  Future<String?> read() async {
+    final saved = await keystore.read(_key);
+    if (saved != null) return saved;
+    String? old;
+    try {
+      old = await legacy.read();
+    } catch (_) {
+      return null;
+    }
+    if (old == null) return null;
+    await keystore.write(_key, old);
+    try {
+      await legacy.delete();
+    } catch (_) {}
+    return old;
+  }
+
+  @override
+  Future<void> write(String token) => keystore.write(_key, token);
+
+  @override
+  Future<void> delete() async {
+    await keystore.delete(_key);
+    try {
+      await legacy.delete();
+    } catch (_) {}
+  }
+}
+
+/// The token store for this platform.
+TokenStore platformTokenStore() => Platform.isAndroid
+    ? const AndroidKeystoreTokenStore()
+    : const SecureTokenStore();
 
 /// Keeps the token in memory only (tests, or when no keychain is available).
 class MemoryTokenStore implements TokenStore {

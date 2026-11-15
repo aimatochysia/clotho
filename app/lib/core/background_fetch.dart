@@ -121,7 +121,7 @@ void backgroundFetchDispatcher() {
     await configureTlsSafely(configDir.path);
     String? token;
     try {
-      token = await const SecureTokenStore().read();
+      token = await platformTokenStore().read();
     } catch (_) {}
     final git = RustGitService(
       configDir: configDir.path,

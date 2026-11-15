@@ -1,0 +1,19 @@
+name: clotho_keystore
+description: Keeps Clotho's secrets in app-private files encrypted with an Android Keystore key.
+version: 1.0.0
+publish_to: none
+
+environment:
+  sdk: ^3.13.7
+  flutter: ">=3.38.1"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+flutter:
+  plugin:
+    platforms:
+      android:
+        package: com.clotho.keystore
+        pluginClass: ClothoKeystorePlugin
